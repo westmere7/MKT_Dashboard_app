@@ -9,6 +9,7 @@ export const demoData: DashboardData = {
     brandName: 'RMIT Marketing',
     rotationSeconds: 12,
     birthdayWindowDays: 30,
+    eventWindowDays: 60,
     showSeconds: false,
     tickerMessages: [
       'Welcome to the RMIT Marketing live wall',

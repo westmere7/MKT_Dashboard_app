@@ -12,6 +12,71 @@ export interface SocialStat {
   platform?: string; // e.g. "Instagram", "TikTok"
 }
 
+export type CardKind =
+  | 'brand'
+  | 'clock'
+  | 'hero'
+  | 'portrait'
+  | 'text'
+  | 'stat'
+  | 'video'
+  | 'birthday'
+  | 'countdown'
+  | 'upcoming-events';
+
+export type Tone = 'navy' | 'white';
+
+export interface BirthdayPerson {
+  name: string;
+  photoUrl?: string;
+  days: number;
+  team?: string;
+  dateLabel?: string;
+}
+
+export interface EventItem {
+  title: string;
+  startDate: string;
+  days: number;
+  dateLabel: string;
+  tags?: string[];
+}
+
+export interface Card {
+  id: string;
+  kind: CardKind;
+  tone: Tone;
+  title?: string;
+  tagline?: string;
+  status?: string;
+  imageUrl?: string; // first image (back-compat / single-image cards)
+  images?: string[]; // full gallery to cycle through
+  intervalMs?: number; // per-image dwell time when cycling
+  url?: string;
+  label?: string;
+  value?: string;
+  delta?: string;
+  trend?: 'up' | 'down' | 'flat';
+  platform?: string;
+  brandName?: string;
+  days?: number;
+  dateLabel?: string;
+  people?: BirthdayPerson[];
+  events?: EventItem[];
+}
+
+// A CampaignUnit is everything one campaign could show, as an ordered list of
+// candidate cards. The display shows exactly ONE of these per scene, so a
+// campaign is never represented by two tiles at once. variants[0] is the
+// campaign's primary card (its video if it has one — prioritised — else its
+// image gallery, else its tagline); the rest are its stats / countdown, which
+// get airtime on later scenes.
+export interface CampaignUnit {
+  id: string;
+  variants: Card[];
+  showPermanently?: boolean;
+}
+
 export interface Campaign {
   id: string;
   title: string;
@@ -44,6 +109,7 @@ export interface Settings {
   brandName: string;
   rotationSeconds: number; // how often the bento layout rotates
   birthdayWindowDays: number; // how far ahead "upcoming" birthdays look
+  eventWindowDays?: number; // how far ahead "upcoming" events look
   showSeconds: boolean;
   tickerMessages: string[];
   cornerRadius?: number;

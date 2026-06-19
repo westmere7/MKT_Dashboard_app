@@ -153,7 +153,7 @@ function SettingsSection() {
         <div className="item-main">
           <div className="item-title">Display settings {dirty && <span className="dirty-dot" title="Unsaved" />}</div>
           <div className="item-meta">
-            {draft.brandName} · rotate {draft.rotationSeconds}s · birthdays {draft.birthdayWindowDays}d ·{' '}
+            {draft.brandName} · rotate {draft.rotationSeconds}s · birthdays {draft.birthdayWindowDays}d · events {draft.eventWindowDays ?? 60}d ·{' '}
             {draft.tickerMessages.length} ticker msgs
           </div>
         </div>
@@ -187,6 +187,17 @@ function SettingsSection() {
                 onChange={(e) => set({ birthdayWindowDays: Number(e.target.value) })}
               />
             </div>
+            <div className="field">
+              <label>Upcoming events look-ahead (days)</label>
+              <input
+                type="number"
+                min={1}
+                value={draft.eventWindowDays ?? 60}
+                onChange={(e) => set({ eventWindowDays: Number(e.target.value) })}
+              />
+            </div>
+          </div>
+          <div className="row">
             <div className="field">
               <label>Show seconds on clock</label>
               <select
@@ -381,10 +392,7 @@ function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: b
           <div className="item-meta">
             {draft.showPermanently && <span className="pill pinned">📌 Permanent</span>}
             <span className={`pill ${draft.status}`}>{draft.status === 'ongoing' ? 'Ongoing' : 'Upcoming'}</span>
-            <span>
-              {draft.startDate}
-              {draft.endDate && draft.endDate !== draft.startDate ? ` → ${draft.endDate}` : ''}
-            </span>
+            <span>{draft.startDate}</span>
             <span>· {draft.stats.length} stats</span>
             <span>· {imageCount} {imageCount === 1 ? 'image' : 'images'}</span>
             {draft.youtubeUrl && <span>· ▶ video</span>}
@@ -405,7 +413,7 @@ function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: b
               <input value={draft.tagline} onChange={(e) => set({ tagline: e.target.value })} />
             </div>
           </div>
-          <div className="row-3">
+          <div className="row">
             <div className="field">
               <label>Status</label>
               <select value={draft.status} onChange={(e) => set({ status: e.target.value as Campaign['status'] })}>
@@ -415,11 +423,11 @@ function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: b
             </div>
             <div className="field">
               <label>Start date</label>
-              <input type="date" value={draft.startDate} onChange={(e) => set({ startDate: e.target.value })} />
-            </div>
-            <div className="field">
-              <label>End date</label>
-              <input type="date" value={draft.endDate} onChange={(e) => set({ endDate: e.target.value })} />
+              <input
+                type="date"
+                value={draft.startDate}
+                onChange={(e) => set({ startDate: e.target.value, endDate: e.target.value })}
+              />
             </div>
           </div>
 

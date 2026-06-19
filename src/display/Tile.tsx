@@ -2,17 +2,18 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Card } from './cards';
 import { useData } from '../store/useData';
-import { birthdayLabel, youtubeId } from '../lib/util';
+import { birthdayLabel, youtubeId, daysUntil, formatEventDate } from '../lib/util';
+import rmitLogo from '../Elements/RMIT_white.svg';
 
 // Renders one bento tile based on its card kind. The outer motion wrapper lives
 // in Display; this component only paints the inner content.
 
-export function TileContent({ card }: { card: Card }) {
+export function TileContent({ card, w, h }: { card: Card; w?: number; h?: number }) {
   switch (card.kind) {
     case 'brand':
       return <BrandTile card={card} />;
     case 'clock':
-      return <ClockTile />;
+      return <ClockTile w={w} h={h} />;
     case 'hero':
     case 'portrait':
       return <ImageTile card={card} />;
@@ -42,7 +43,7 @@ function BrandTile({ card }: { card: Card }) {
   );
 }
 
-function ClockTile() {
+function ClockTile({ w = 3, h = 6 }: { w?: number; h?: number }) {
   const { data } = useData();
   const [now, setNow] = useState(() => new Date());
 
@@ -81,23 +82,70 @@ function ClockTile() {
     month: 'short',
   });
 
+  // Calculate upcoming events to show under the clock
+  const campaigns = data.campaigns || [];
+  const settings = data.settings;
+  const eventWindowDays = settings.eventWindowDays ?? 60;
+  const upcomingEvents = campaigns
+    .filter((c) => {
+      if (c.status !== 'upcoming') return false;
+      const d = daysUntil(c.startDate);
+      return d >= 0 && d <= eventWindowDays;
+    })
+    .map((c) => ({
+      title: c.title,
+      days: daysUntil(c.startDate),
+      dateLabel: formatEventDate(c.startDate),
+      tags: c.tags || [],
+    }))
+    .sort((a, b) => a.days - b.days);
+
+  const isWide = w > h;
+
   return (
-    <div className="clock-dual">
-      <div className="clock-timezone">
-        <div className="timezone-header">
-          <span className="badge-tz">Vietnam</span>
-          <span className="date-tz">{dateVN}</span>
+    <div className={`clock-and-events ${isWide ? 'tile-layout-wide' : 'tile-layout-vertical'}`}>
+      <div className="clock-time-group">
+        <div className="clock-logo-container">
+          <img src={rmitLogo} className="clock-logo" alt="RMIT Logo" />
         </div>
-        <div className="time-tz">{timeVN}</div>
-      </div>
-      
-      <div className="clock-timezone">
-        <div className="timezone-header">
-          <span className="badge-tz">Melbourne</span>
-          <span className="date-tz">{dateMelb}</span>
+        <div className="clock-dual">
+          <div className="clock-timezone">
+            <div className="timezone-header">
+              <span className="badge-tz">Vietnam</span>
+              <span className="date-tz">{dateVN}</span>
+            </div>
+            <div className="time-tz">{timeVN}</div>
+          </div>
+          
+          <div className="clock-timezone">
+            <div className="timezone-header">
+              <span className="badge-tz">Melbourne</span>
+              <span className="date-tz">{dateMelb}</span>
+            </div>
+            <div className="time-tz">{timeMelb}</div>
+          </div>
         </div>
-        <div className="time-tz">{timeMelb}</div>
       </div>
+
+      {upcomingEvents.length > 0 && (
+        <div className="clock-events-section">
+          <div className="clock-events-list">
+            {upcomingEvents.map((e) => (
+              <div className="clock-event-row" key={e.title}>
+                <div className="clock-event-date-box">
+                  <span className="clock-event-date-label">{e.dateLabel}</span>
+                </div>
+                <div className="clock-event-info">
+                  <div className="clock-event-title" title={e.title}>{e.title}</div>
+                </div>
+                <span className={`clock-event-days ${e.days === 0 ? 'today' : e.days === 1 ? 'tomorrow' : ''}`}>
+                  {e.days === 0 ? 'Today' : e.days === 1 ? 'Tomorrow' : `in ${e.days}d`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -373,3 +421,6 @@ function CountdownTile({ card }: { card: Card }) {
     </>
   );
 }
+
+
+

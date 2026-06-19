@@ -5,7 +5,7 @@ import type { Connection } from '../store/useData';
 import { useScheduledReload } from '../lib/useScheduledReload';
 import { buildCampaignUnits, buildUtilities } from './cards';
 import type { Card, CampaignUnit } from './cards';
-import { TEMPLATES_BY_COUNT } from './layouts';
+import { TEMPLATES_BY_COUNT, TEMPLATES_BY_COUNT_SHORT_BDAY } from './layouts';
 import type { PlacedTile } from './layouts';
 import { TileContent } from './Tile';
 
@@ -127,7 +127,8 @@ export function Display() {
   // count gives fewer/bigger tiles when there are fewer campaigns. `tick` folds
   // in the random seed so the starting template/content differs each load.
   const count = Math.min(units.length, MAX_CAMPAIGN_TILES);
-  const family = TEMPLATES_BY_COUNT[count];
+  const isBirthdayShort = utils.birthday.people ? utils.birthday.people.length <= 5 : true;
+  const family = isBirthdayShort ? TEMPLATES_BY_COUNT_SHORT_BDAY[count] : TEMPLATES_BY_COUNT[count];
   const tick = sceneIdx + seed;
   const template = family[tick % family.length];
   const contentCycle = Math.floor(tick / family.length);
@@ -139,11 +140,11 @@ export function Display() {
     const shuffledUnpinned = shuffle(unpinnedUnits, seed + contentCycle);
     const chosen = [...shuffledPinned, ...shuffledUnpinned].slice(0, count);
 
-    const utilCards = [utils.brand, utils.clock, utils.birthday];
+    const utilCards = [utils.clock, utils.birthday];
     return template.map((geom, i) => ({
       ...geom,
       role: i,
-      card: i < 3 ? utilCards[i] : pickVariant(chosen[i - 3], contentCycle + seed, i - 3),
+      card: i < 2 ? utilCards[i] : pickVariant(chosen[i - 2], contentCycle + seed, i - 2),
     }));
   }, [template, units, utils, count, contentCycle, seed]);
 
@@ -172,7 +173,7 @@ export function Display() {
               key={tile.role}
               layout
               transition={{ type: 'spring', stiffness: 200, damping: 26, mass: 0.9 }}
-              className={`tile ${isClock ? 'tile-plain' : tile.card.tone} ${isImage ? 'tile-image' : ''} ${isVideo ? 'tile-video' : ''} ${alignClass}`}
+              className={`tile ${isClock ? 'tile-plain' : tile.card.tone} ${isImage ? 'tile-image' : ''} ${isVideo ? 'tile-video' : ''} ${tile.h <= 3 ? 'tile-short' : ''} ${alignClass}`}
               style={{
                 gridColumn: `${tile.col} / span ${tile.w}`,
                 gridRow: `${tile.row} / span ${tile.h}`,
@@ -189,7 +190,7 @@ export function Display() {
                   exit={{ y: 60, opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 180, damping: 20, mass: 0.8 }}
                 >
-                  <TileContent card={tile.card} />
+                  <TileContent card={tile.card} w={tile.w} h={tile.h} />
                 </motion.div>
               </AnimatePresence>
             </motion.div>

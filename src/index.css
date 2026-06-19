@@ -14,6 +14,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Helvetica';
+  src: url('./fonts/helveticaneueltpro_lt.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* RMIT brand palette */
   --rmit-red: #e61e2a;
@@ -43,6 +51,17 @@ h1, h2, h3, h4, h5, h6,
 .crash-title {
   font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
   font-weight: 700;
+}
+
+.brand-sub,
+.img-date,
+.date-tz,
+.platform,
+.text-tile .text-title,
+.bday-meta,
+.ticker,
+.muted {
+  font-weight: 300;
 }
 
 * {
@@ -278,7 +297,6 @@ body {
 .date-tz {
   font-size: min(7.5cqw, 8cqh, 1.9rem);
   opacity: 0.85;
-  font-weight: 600;
   color: var(--white);
 }
 
@@ -334,7 +352,6 @@ body {
 
 .platform {
   opacity: 0.6;
-  font-weight: 600;
 }
 
 /* ---------- text / tagline tile ---------- */
@@ -519,7 +536,6 @@ body {
   align-items: center;
   gap: 10px;
   color: var(--white);
-  font-weight: 600;
   font-size: 0.75rem;
   padding: 0 4px;
   pointer-events: none;
@@ -674,3 +690,301 @@ body {
   0% { transform: translateY(0) rotate(-10deg); }
   100% { transform: translateY(-4px) rotate(15deg); }
 }
+
+/* ---------- tile-short responsive adjustments (h <= 3) ---------- */
+
+.tile.tile-short {
+  padding: 24px 28px;
+}
+
+.tile-short .bday-head {
+  font-size: clamp(1.2rem, 1.6vw, 1.8rem);
+}
+
+.tile-short .bday-head .cake {
+  font-size: clamp(1.4rem, 1.8vw, 2.2rem);
+}
+
+.tile-short .bday-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px 28px;
+  margin-top: 18px;
+}
+
+@container (min-width: 440px) {
+  .tile-short .bday-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tile-short .bday-row img,
+.tile-short .bday-avatar-empty {
+  width: clamp(48px, 3.8vw, 64px);
+  height: clamp(48px, 3.8vw, 64px);
+}
+
+.tile-short .bday-avatar-empty {
+  font-size: clamp(1.1rem, 1.4vw, 1.8rem);
+}
+
+.tile-short .bday-row.today img,
+.tile-short .bday-row.today .bday-avatar-empty {
+  width: clamp(54px, 4.4vw, 72px);
+  height: clamp(54px, 4.4vw, 72px);
+  border-width: 2.5px;
+}
+
+.tile-short .bday-row.today .bday-avatar-empty {
+  font-size: clamp(1.6rem, 2vw, 2.4rem);
+}
+
+.tile-short .bday-row.today {
+  padding: 8px 12px;
+  margin: 3px -8px;
+  border-radius: 14px;
+}
+
+.tile-short .bday-name {
+  font-size: clamp(0.95rem, 1.2vw, 1.3rem);
+}
+
+.tile-short .bday-row.today .bday-name {
+  font-size: clamp(1.05rem, 1.4vw, 1.5rem);
+}
+
+.tile-short .bday-meta {
+  font-size: clamp(0.8rem, 1vw, 0.95rem);
+}
+
+.tile-short .bday-row.today .bday-meta {
+  font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+}
+
+.tile-short .bday-when {
+  font-size: clamp(0.9rem, 1.1vw, 1.2rem);
+}
+
+.tile-short .bday-row-today-icon {
+  font-size: clamp(1rem, 1.3vw, 1.4rem);
+}
+
+/* ---------- clock and events tile ---------- */
+
+.clock-and-events {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.clock-and-events.tile-layout-vertical {
+  flex-direction: column;
+  gap: 24px;
+}
+
+.clock-and-events.tile-layout-wide {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(24px, 3.5vw, 48px);
+}
+
+.clock-time-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.tile-layout-vertical .clock-time-group {
+  width: 100%;
+}
+
+.tile-layout-wide .clock-time-group {
+  flex: 0 0 auto;
+  width: 45%;
+}
+
+.clock-logo-container {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  margin-bottom: 32px; /* Spacing between logo and time */
+}
+
+.clock-logo {
+  height: clamp(55px, 7vw, 90px); /* A bit bigger logo */
+  width: auto;
+  opacity: 0.95;
+  transition: height 0.3s ease;
+}
+
+.clock-dual {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+}
+
+.clock-events-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.tile-layout-vertical .clock-events-section {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.tile-layout-wide .clock-events-section {
+  flex: 1 1 0%;
+  margin-top: 0;
+}
+
+.clock-events-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(1.1rem, 1.4vw, 1.6rem);
+  font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  color: var(--white);
+  opacity: 0.95;
+  margin-bottom: 12px;
+}
+
+.clock-events-head .calendar-icon {
+  font-size: clamp(1.3rem, 1.7vw, 2rem);
+}
+
+.clock-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.clock-event-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.clock-event-date-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  color: var(--rmit-navy);
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-weight: 800;
+  min-width: 60px;
+  text-align: center;
+  font-size: clamp(0.75rem, 0.9vw, 1rem);
+  font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
+}
+
+.clock-event-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.clock-event-title {
+  font-weight: 700;
+  font-size: clamp(0.95rem, 1.1vw, 1.3rem);
+  line-height: 1.2;
+  word-break: break-word;
+  color: var(--white);
+}
+
+.clock-event-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.clock-event-tag {
+  font-size: clamp(0.65rem, 0.75vw, 0.8rem);
+  opacity: 0.75;
+  color: var(--white);
+  font-weight: 300;
+}
+
+.clock-event-days {
+  font-weight: 700;
+  font-size: clamp(0.9rem, 1.15vw, 1.25rem);
+  color: var(--white);
+  background: rgba(230, 30, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-left: auto;
+  white-space: nowrap;
+  font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Today event highlight on clock */
+.clock-event-days.today {
+  background: rgba(46, 125, 50, 0.6);
+}
+
+.clock-event-days.tomorrow {
+  background: rgba(239, 108, 0, 0.6);
+}
+
+/* Responsive adjustments using container queries */
+
+/* Adjust clocks when max height is smaller (e.g. h: 3 or h: 2) */
+@container (max-height: 380px) {
+  .clock-dual {
+    gap: 12px;
+  }
+  .timezone-header {
+    gap: 6px;
+  }
+  .badge-tz, .date-tz {
+    font-size: min(7.5cqw, 8cqh, 1.2rem);
+    padding: 3px 8px;
+  }
+  .clock-event-row {
+    padding: 9px 12px;
+  }
+  .clock-logo-container {
+    margin-bottom: 16px; /* spacing between logo and time */
+  }
+  .clock-logo {
+    height: clamp(45px, 6vw, 75px); /* scale down slightly on short layouts */
+  }
+  /* On vertical short cards, hide events completely as there's no vertical space */
+  .tile-layout-vertical .clock-events-section {
+    display: none;
+  }
+}
+
+/* For wide and short clock tiles: split clocks horizontally */
+@container (max-height: 380px) {
+  .tile-layout-wide .clock-dual {
+    flex-direction: row;
+    gap: 24px;
+  }
+  .tile-layout-wide .clock-time-group {
+    width: 52%;
+  }
+}
+
+/* Completely hide events in extremely restricted heights to avoid clipping clocks */
+@container (max-height: 180px) {
+  .clock-events-section {
+    display: none;
+  }
+}
+
+

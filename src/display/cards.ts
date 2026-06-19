@@ -1,4 +1,4 @@
-import type { DashboardData } from '../types';
+import type { DashboardData, EventItem } from '../types';
 import { campaignImages, daysUntil, daysUntilBirthday, formatEventDate, upcomingBirthdays } from '../lib/util';
 
 // A Card is one renderable bento tile. We keep it a single flat shape (rather
@@ -15,7 +15,8 @@ export type CardKind =
   | 'stat'
   | 'video'
   | 'birthday'
-  | 'countdown';
+  | 'countdown'
+  | 'upcoming-events';
 
 export type Tone = 'navy' | 'white';
 
@@ -47,6 +48,7 @@ export interface Card {
   days?: number;
   dateLabel?: string;
   people?: BirthdayPerson[];
+  events?: EventItem[];
 }
 
 // A CampaignUnit is everything one campaign could show, as an ordered list of
