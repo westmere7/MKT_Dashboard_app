@@ -24,6 +24,7 @@ export interface Campaign {
   youtubeUrl?: string; // full youtube watch/share url
   stats: SocialStat[];
   tags?: string[];
+  showPermanently?: boolean;
   // Legacy image fields, kept so previously saved data still renders/migrates.
   keyVisualUrls?: string[];
   portraitUrls?: string[];
@@ -45,10 +46,16 @@ export interface Settings {
   birthdayWindowDays: number; // how far ahead "upcoming" birthdays look
   showSeconds: boolean;
   tickerMessages: string[];
+  cornerRadius?: number;
+  backgroundColor?: string;
+  navyColor?: string;
+  whiteColor?: string;
 }
 
 export interface DashboardData {
   campaigns: Campaign[];
   birthdays: Birthday[];
   settings: Settings;
+  pictures?: string[]; // "Pictures of the week" — standalone images, shown at random
+  picturesShowPermanently?: boolean;
 }

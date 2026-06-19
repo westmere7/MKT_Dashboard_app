@@ -89,9 +89,16 @@ export const demoData: DashboardData = {
     },
   ],
   birthdays: [
-    { id: 'b1', name: 'Linh Nguyen', date: '06-21', photoUrl: 'https://i.pravatar.cc/200?img=5', team: 'Social' },
+    { id: 'b1', name: 'Linh Nguyen', date: '06-19', photoUrl: 'https://i.pravatar.cc/200?img=5', team: 'Social' },
     { id: 'b2', name: 'Minh Tran', date: '06-25', photoUrl: 'https://i.pravatar.cc/200?img=12', team: 'Content' },
     { id: 'b3', name: 'Sarah Lee', date: '07-02', photoUrl: 'https://i.pravatar.cc/200?img=32', team: 'Design' },
     { id: 'b4', name: 'David Pham', date: '07-10', photoUrl: 'https://i.pravatar.cc/200?img=15', team: 'Brand' },
+  ],
+  pictures: [
+    'https://picsum.photos/seed/rmit-week1/1200/900',
+    'https://picsum.photos/seed/rmit-week2/1200/900',
+    'https://picsum.photos/seed/rmit-week3/1200/900',
+    'https://picsum.photos/seed/rmit-week4/1200/900',
+    'https://picsum.photos/seed/rmit-week5/1200/900',
   ],
 };

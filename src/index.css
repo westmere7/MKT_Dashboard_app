@@ -27,7 +27,7 @@ body,
 }
 
 body {
-  background: var(--rmit-red);
+  background: var(--bg-color, var(--rmit-red));
   overflow: hidden;
 }
 
@@ -38,7 +38,7 @@ body {
   width: 100vw;
   display: flex;
   flex-direction: column;
-  background: var(--rmit-red);
+  background: var(--bg-color, var(--rmit-red));
   padding: var(--pad);
   gap: 14px;
 }
@@ -61,6 +61,7 @@ body {
   flex-direction: column;
   transition: background-color 0.7s ease, color 0.7s ease;
   will-change: transform;
+  container-type: size;
 }
 
 /* Inner wrapper that crossfades content while the tile morphs in place. */
@@ -72,14 +73,34 @@ body {
   flex-direction: column;
 }
 
+/* Alignments based on card midpoint position */
+.tile.align-top .tile-inner {
+  justify-content: flex-start;
+}
+.tile.align-bottom .tile-inner {
+  justify-content: flex-end;
+}
+.tile.align-center .tile-inner {
+  justify-content: center;
+}
+
 .tile.white {
-  background: var(--white);
-  color: var(--rmit-navy);
+  background: var(--white-color, var(--white));
+  color: var(--navy-color, var(--rmit-navy));
 }
 
 .tile.navy {
-  background: var(--rmit-navy);
-  color: var(--white);
+  background: var(--navy-color, var(--rmit-navy));
+  color: var(--white-color, var(--white));
+}
+
+/* Clock tile: no card chrome — time/date sit directly on the red background and
+   the text scales (via container-query units) to fill the cell. */
+.tile.tile-plain {
+  background: transparent;
+  color: var(--white-color, var(--white));
+  container-type: size;
+  padding: 30px;
 }
 
 /* ---------- image tiles ---------- */
@@ -178,39 +199,82 @@ body {
 
 /* ---------- clock tile ---------- */
 
-.clock .time {
-  font-size: clamp(2.6rem, 5.2vw, 5.5rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.02em;
+.clock-dual {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
 }
 
-.clock .date {
-  font-size: clamp(1.05rem, 1.4vw, 1.6rem);
+.clock-timezone {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timezone-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge-tz {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: min(7.5cqw, 8cqh, 1.8rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  display: inline-block;
+  line-height: 1.2;
+}
+
+.date-tz {
+  font-size: min(7.5cqw, 8cqh, 1.9rem);
   opacity: 0.85;
-  margin-top: 10px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.time-tz {
+  font-size: min(18cqw, 18cqh);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--white);
+  white-space: nowrap;
 }
 
 /* ---------- stat tile ---------- */
 
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
 .stat .stat-label {
-  font-size: clamp(1.05rem, 1.4vw, 1.6rem);
+  font-size: clamp(1rem, 7.5cqw, 2.4rem);
   opacity: 0.8;
   font-weight: 700;
 }
 
 .stat .stat-value {
-  font-size: clamp(2.8rem, 6vw, 6.5rem);
+  font-size: clamp(2.8rem, 24cqw, 9.5rem);
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.02em;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
 }
 
 .stat .stat-foot {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: clamp(1rem, 1.3vw, 1.5rem);
+  font-size: clamp(0.9rem, 7cqw, 2.2rem);
 }
 
 .delta {
@@ -253,20 +317,29 @@ body {
 
 /* ---------- countdown tile ---------- */
 
-.countdown .cd-days {
-  font-size: clamp(4rem, 8.5vw, 9rem);
-  font-weight: 800;
-  line-height: 0.9;
-}
-
-.countdown .cd-unit {
-  font-size: clamp(1.1rem, 1.5vw, 1.7rem);
-  opacity: 0.85;
+.countdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
 .countdown .cd-title {
-  font-size: clamp(1.3rem, 1.8vw, 2.1rem);
+  font-size: clamp(1rem, 7.5cqw, 2.4rem);
   font-weight: 700;
+  opacity: 0.8;
+}
+
+.countdown .cd-days {
+  font-size: clamp(3.5rem, 24cqw, 9.5rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.countdown .cd-unit {
+  font-size: clamp(0.9rem, 7cqw, 2.2rem);
+  opacity: 0.85;
 }
 
 /* ---------- video tile ---------- */
@@ -283,7 +356,7 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(1.5);
   width: max(100cqw, calc(100cqh * 16 / 9));
   height: max(100cqh, calc(100cqw * 9 / 16));
   border: 0;
@@ -472,4 +545,84 @@ body {
   margin-top: 10px;
   font-size: 1.1rem;
   opacity: 0.85;
+}
+
+/* ---------- Today's Birthday Highlight (within Birthdays list) ---------- */
+
+/* Wrapper to support the overlay crown */
+.bday-row-avatar-wrapper {
+  position: relative;
+  flex: none;
+}
+
+/* Empty avatar placeholder styled consistently */
+.bday-avatar-empty {
+  width: clamp(48px, 4vw, 70px);
+  height: clamp(48px, 4vw, 70px);
+  border-radius: 999px;
+  background: #e7e7ee;
+  color: var(--rmit-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.2rem, 1.6vw, 2rem);
+  flex: none;
+}
+
+/* Highlight row for active birthday today */
+.bday-row.today {
+  background: rgba(230, 30, 42, 0.08); /* soft red background glow */
+  border: 2px dashed rgba(230, 30, 42, 0.35);
+  border-radius: 18px;
+  padding: 10px 14px;
+  margin: 6px -10px; /* pull row slightly wider for accent */
+  box-shadow: 0 4px 12px rgba(230, 30, 42, 0.08);
+  animation: row-pulse 3s infinite ease-in-out alternate;
+}
+
+@keyframes row-pulse {
+  0% { transform: scale(1); border-color: rgba(230, 30, 42, 0.35); }
+  100% { transform: scale(1.015); border-color: rgba(230, 30, 42, 0.6); }
+}
+
+/* Make celebrant avatar bigger and add red border */
+.bday-row.today img,
+.bday-row.today .bday-avatar-empty {
+  width: clamp(56px, 5vw, 82px);
+  height: clamp(56px, 5vw, 82px);
+  border: 3px solid var(--rmit-red);
+  box-shadow: 0 4px 12px rgba(230, 30, 42, 0.25);
+}
+
+.bday-row.today .bday-avatar-empty {
+  background: #ffebeb;
+  font-size: clamp(1.8rem, 2.2vw, 2.6rem);
+}
+
+/* Make name and metadata more prominent today */
+.bday-row.today .bday-name {
+  font-size: clamp(1.2rem, 1.6vw, 1.8rem);
+  color: var(--rmit-red);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+}
+
+.bday-row.today .bday-meta {
+  font-size: clamp(0.95rem, 1.2vw, 1.3rem);
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+/* Animated popper next to celebrant name */
+.bday-row-today-icon {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: clamp(1.1rem, 1.5vw, 1.7rem);
+  animation: popper-bounce 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes popper-bounce {
+  0% { transform: translateY(0) rotate(-10deg); }
+  100% { transform: translateY(-4px) rotate(15deg); }
 }

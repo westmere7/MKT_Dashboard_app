@@ -475,3 +475,27 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* Checkbox and Permanent styles */
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 12px 0;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.pill.pinned {
+  background: #ffe3e3;
+  color: #c92a2a;
+}

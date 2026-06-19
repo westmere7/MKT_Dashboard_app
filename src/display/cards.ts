@@ -24,6 +24,7 @@ export interface BirthdayPerson {
   photoUrl?: string;
   days: number;
   team?: string;
+  dateLabel?: string;
 }
 
 export interface Card {
@@ -48,50 +49,35 @@ export interface Card {
   people?: BirthdayPerson[];
 }
 
-export type CardPools = Record<CardKind, Card[]>;
+// A CampaignUnit is everything one campaign could show, as an ordered list of
+// candidate cards. The display shows exactly ONE of these per scene, so a
+// campaign is never represented by two tiles at once. variants[0] is the
+// campaign's primary card (its video if it has one — prioritised — else its
+// image gallery, else its tagline); the rest are its stats / countdown, which
+// get airtime on later scenes.
+export interface CampaignUnit {
+  id: string;
+  variants: Card[];
+  showPermanently?: boolean;
+}
 
-export function buildPools(data: DashboardData): CardPools {
-  const { campaigns, birthdays, settings } = data;
+export function buildCampaignUnits(data: DashboardData): CampaignUnit[] {
+  const { campaigns, settings } = data;
 
-  const pools: CardPools = {
-    brand: [{ id: 'brand', kind: 'brand', tone: 'navy', brandName: settings.brandName }],
-    clock: [{ id: 'clock', kind: 'clock', tone: 'white' }],
-    hero: [],
-    portrait: [],
-    text: [],
-    stat: [],
-    video: [],
-    birthday: [],
-    countdown: [],
-  };
-
-  // Default per-image dwell: aim to show ~3 images before the layout rotates, so
-  // a gallery cycles through "some" of its pictures within one scene. Clamped to
-  // a comfortable 2-4s. A per-campaign override wins when set (> 0).
+  // Default per-image dwell: aim to show ~3 images before the layout rotates.
   const autoIntervalMs = Math.max(2000, Math.min(4000, Math.round((settings.rotationSeconds * 1000) / 3)));
 
-  // One unified image pool — no landscape/portrait distinction; image tiles
-  // cover-fill whatever slot they land in. Both image roles draw from this.
-  const imageCards: Card[] = [];
-
-  for (const c of campaigns) {
+  const units = campaigns.map((c) => {
     const intervalMs = c.imageIntervalSeconds && c.imageIntervalSeconds > 0 ? c.imageIntervalSeconds * 1000 : autoIntervalMs;
-    const hasVideo = !!(c.youtubeUrl && c.youtubeUrl.trim());
+    const variants: Card[] = [];
 
-    if (hasVideo) {
-      // A video campaign is represented by its video — prioritise it over its
-      // stills, which are not also shown as image tiles.
-      pools.video.push({
-        id: `${c.id}-video`,
-        kind: 'video',
-        tone: 'navy',
-        title: c.title,
-        url: c.youtubeUrl,
-      });
+    // Primary card — video wins, then images, then tagline.
+    if (c.youtubeUrl && c.youtubeUrl.trim()) {
+      variants.push({ id: `${c.id}-video`, kind: 'video', tone: 'navy', title: c.title, url: c.youtubeUrl });
     } else {
       const imgs = campaignImages(c);
       if (imgs.length) {
-        imageCards.push({
+        variants.push({
           id: `${c.id}-img`,
           kind: 'hero',
           tone: 'navy',
@@ -105,26 +91,9 @@ export function buildPools(data: DashboardData): CardPools {
       }
     }
 
-    pools.text.push({
-      id: `${c.id}-text`,
-      kind: 'text',
-      tone: 'navy',
-      title: c.title,
-      tagline: c.tagline,
-      status: c.status,
-    });
-    if (c.status === 'upcoming') {
-      pools.countdown.push({
-        id: `${c.id}-cd`,
-        kind: 'countdown',
-        tone: 'navy',
-        title: c.title,
-        days: daysUntil(c.startDate),
-        dateLabel: formatEventDate(c.startDate),
-      });
-    }
+    // Secondary cards — stats and an upcoming-event countdown.
     for (const s of c.stats) {
-      pools.stat.push({
+      variants.push({
         id: s.id,
         kind: 'stat',
         tone: 'white',
@@ -135,17 +104,82 @@ export function buildPools(data: DashboardData): CardPools {
         platform: s.platform,
       });
     }
+    if (c.status === 'upcoming') {
+      const imgs = campaignImages(c);
+      variants.push({
+        id: `${c.id}-cd`,
+        kind: 'countdown',
+        tone: 'navy',
+        title: c.title,
+        days: daysUntil(c.startDate),
+        dateLabel: formatEventDate(c.startDate),
+        images: imgs,
+        intervalMs: autoIntervalMs,
+      });
+    }
+
+    // Always have at least one card to show.
+    if (variants.length === 0) {
+      variants.push({ id: `${c.id}-text`, kind: 'text', tone: 'navy', title: c.title, tagline: c.tagline, status: c.status });
+    }
+
+    return { id: c.id, variants, showPermanently: c.showPermanently };
+  });
+
+  if (data.pictures && data.pictures.length > 0) {
+    const shuffledPictures = [...data.pictures];
+    // Fisher-Yates shuffle
+    for (let i = shuffledPictures.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledPictures[i], shuffledPictures[j]] = [shuffledPictures[j], shuffledPictures[i]];
+    }
+
+    units.push({
+      id: 'pictures-of-the-week',
+      showPermanently: data.picturesShowPermanently,
+      variants: [
+        {
+          id: 'pictures-of-the-week-card',
+          kind: 'hero',
+          tone: 'navy',
+          title: 'Pictures of the week',
+          images: shuffledPictures,
+          intervalMs: autoIntervalMs,
+        },
+      ],
+    });
   }
 
-  // Both image roles share the one pool; the content offset per role spreads
-  // different campaigns across the two image slots in a scene.
-  pools.hero = imageCards;
-  pools.portrait = imageCards;
+  return units;
+}
 
-  const people = upcomingBirthdays(birthdays, settings.birthdayWindowDays)
-    .slice(0, 5)
-    .map((b) => ({ name: b.name, photoUrl: b.photoUrl, team: b.team, days: daysUntilBirthday(b.date) }));
-  pools.birthday.push({ id: 'birthday', kind: 'birthday', tone: 'white', people });
+function formatBirthdayDate(dateStr: string): string {
+  const [mm, dd] = dateStr.split('-');
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthIdx = parseInt(mm, 10) - 1;
+  const day = parseInt(dd, 10);
+  if (monthIdx >= 0 && monthIdx < 12) {
+    return `${day} ${months[monthIdx]}`;
+  }
+  return dateStr;
+}
 
-  return pools;
+// The fixed, non-campaign tiles shown in every scene.
+export function buildUtilities(data: DashboardData): { brand: Card; clock: Card; birthday: Card } {
+  const { settings, birthdays } = data;
+  // Show every upcoming birthday in the window — the birthday tile is always a
+  // tall portrait card, so the full list fits without cropping.
+  const people = upcomingBirthdays(birthdays, settings.birthdayWindowDays).map((b) => ({
+    name: b.name,
+    photoUrl: b.photoUrl,
+    team: b.team,
+    days: daysUntilBirthday(b.date),
+    dateLabel: formatBirthdayDate(b.date),
+  }));
+
+  return {
+    brand: { id: 'brand', kind: 'brand', tone: 'navy', brandName: settings.brandName },
+    clock: { id: 'clock', kind: 'clock', tone: 'white' },
+    birthday: { id: 'birthday', kind: 'birthday', tone: 'white', people },
+  };
 }

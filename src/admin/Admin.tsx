@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useData, firebaseEnabled } from '../store/useData';
 import type { Birthday, Campaign, Settings, SocialStat } from '../types';
@@ -98,6 +98,11 @@ export function Admin() {
             <BirthdayRow key={b.id} birthday={b} open={openId === b.id} onToggle={() => toggle(b.id)} />
           ))}
         </div>
+
+        <div className="section-head">
+          <h2>Misc</h2>
+        </div>
+        <PicturesSection />
       </div>
     </div>
   );
@@ -133,6 +138,11 @@ function SettingsSection() {
   const { data, updateSettings } = useData();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Settings>(data.settings);
+
+  useEffect(() => {
+    setDraft(data.settings);
+  }, [data.settings]);
+
   const set = (patch: Partial<Settings>) => setDraft((d) => ({ ...d, ...patch }));
   const dirty = isDirty(draft, data.settings);
 
@@ -195,10 +205,143 @@ function SettingsSection() {
               onChange={(e) => set({ tickerMessages: e.target.value.split('\n').filter((l) => l.trim()) })}
             />
           </div>
+
+          <div className="section-divider" style={{ margin: '18px 0 12px', fontWeight: 700, fontSize: '0.9rem', borderBottom: '1px solid #ececf2', paddingBottom: '6px', opacity: 0.8 }}>
+            Theme & Appearance
+          </div>
+          <div className="row">
+            <div className="field">
+              <label>Corner radius (pixels)</label>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                placeholder="26"
+                value={draft.cornerRadius !== undefined && draft.cornerRadius !== null ? draft.cornerRadius : ''}
+                onChange={(e) => set({ cornerRadius: e.target.value ? Number(e.target.value) : undefined })}
+              />
+            </div>
+            <div className="field">
+              <label>Background color</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="color"
+                  style={{ width: '42px', height: '42px', padding: '0', border: '1px solid #d6d6de', borderRadius: '8px', cursor: 'pointer', flex: 'none' }}
+                  value={draft.backgroundColor || '#e61e2a'}
+                  onChange={(e) => set({ backgroundColor: e.target.value })}
+                />
+                <input
+                  type="text"
+                  style={{ flex: 1 }}
+                  placeholder="#e61e2a"
+                  value={draft.backgroundColor || ''}
+                  onChange={(e) => set({ backgroundColor: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="field">
+              <label>Navy tile background color</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="color"
+                  style={{ width: '42px', height: '42px', padding: '0', border: '1px solid #d6d6de', borderRadius: '8px', cursor: 'pointer', flex: 'none' }}
+                  value={draft.navyColor || '#000054'}
+                  onChange={(e) => set({ navyColor: e.target.value })}
+                />
+                <input
+                  type="text"
+                  style={{ flex: 1 }}
+                  placeholder="#000054"
+                  value={draft.navyColor || ''}
+                  onChange={(e) => set({ navyColor: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="field">
+              <label>White tile background color</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="color"
+                  style={{ width: '42px', height: '42px', padding: '0', border: '1px solid #d6d6de', borderRadius: '8px', cursor: 'pointer', flex: 'none' }}
+                  value={draft.whiteColor || '#ffffff'}
+                  onChange={(e) => set({ whiteColor: e.target.value })}
+                />
+                <input
+                  type="text"
+                  style={{ flex: 1 }}
+                  placeholder="#ffffff"
+                  value={draft.whiteColor || ''}
+                  onChange={(e) => set({ whiteColor: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+
           <EditorActions
             dirty={dirty}
             onSave={() => updateSettings(draft)}
             onDiscard={() => setDraft(data.settings)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Pictures ---------------- */
+
+function PicturesSection() {
+  const { data, updatePictures } = useData();
+  const [open, setOpen] = useState(false);
+  const pictures = useMemo(() => data.pictures ?? [], [data.pictures]);
+  const showPermanently = data.picturesShowPermanently ?? false;
+
+  const [draftPics, setDraftPics] = useState<string[]>(pictures);
+  const [draftPinned, setDraftPinned] = useState<boolean>(showPermanently);
+
+  useEffect(() => {
+    setDraftPics(pictures);
+    setDraftPinned(showPermanently);
+  }, [pictures, showPermanently]);
+
+  const dirty = isDirty(draftPics, pictures) || draftPinned !== showPermanently;
+
+  return (
+    <div className="panel">
+      <button className="item-row" onClick={() => setOpen((o) => !o)}>
+        <span className="item-icon">🖼️</span>
+        <div className="item-main">
+          <div className="item-title">Pictures of the week {dirty && <span className="dirty-dot" title="Unsaved" />}</div>
+          <div className="item-meta">
+            {draftPics.length} {draftPics.length === 1 ? 'picture' : 'pictures'}
+            {draftPinned && <span className="pill pinned">📌 Permanent</span>}
+          </div>
+        </div>
+        <span className={`chevron ${open ? 'up' : ''}`}>▾</span>
+      </button>
+
+      {open && (
+        <div className="item-detail">
+          <div className="field">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={draftPinned}
+                onChange={(e) => setDraftPinned(e.target.checked)}
+              />
+              <span>Show permanently on dashboard</span>
+            </label>
+          </div>
+          <ImageGalleryInput label="Pictures" value={draftPics} onChange={setDraftPics} />
+          <EditorActions
+            dirty={dirty}
+            onSave={() => updatePictures(draftPics, draftPinned)}
+            onDiscard={() => {
+              setDraftPics(pictures);
+              setDraftPinned(showPermanently);
+            }}
           />
         </div>
       )}
@@ -236,6 +379,7 @@ function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: b
             {draft.title || 'Untitled'} {dirty && <span className="dirty-dot" title="Unsaved" />}
           </div>
           <div className="item-meta">
+            {draft.showPermanently && <span className="pill pinned">📌 Permanent</span>}
             <span className={`pill ${draft.status}`}>{draft.status === 'ongoing' ? 'Ongoing' : 'Upcoming'}</span>
             <span>
               {draft.startDate}
@@ -278,6 +422,18 @@ function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: b
               <input type="date" value={draft.endDate} onChange={(e) => set({ endDate: e.target.value })} />
             </div>
           </div>
+
+          <div className="field">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={draft.showPermanently ?? false}
+                onChange={(e) => set({ showPermanently: e.target.checked })}
+              />
+              <span>Show permanently on dashboard</span>
+            </label>
+          </div>
+
           <ImageGalleryInput label="Images" value={images} onChange={(urls) => set({ images: urls })} />
 
           <div className="row">
@@ -390,8 +546,28 @@ function BirthdayRow({ birthday, open, onToggle }: { birthday: Birthday; open: b
               <input value={draft.name} onChange={(e) => set({ name: e.target.value })} />
             </div>
             <div className="field">
-              <label>Date (MM-DD)</label>
-              <input value={draft.date} placeholder="06-21" onChange={(e) => set({ date: e.target.value })} />
+              <label>Birthday</label>
+              <input
+                type="date"
+                value={(() => {
+                  if (!draft.date) return '';
+                  const parts = draft.date.split('-');
+                  if (parts.length !== 2) return '';
+                  const [mm, dd] = parts;
+                  const dummyYear = new Date().getFullYear();
+                  const pad = (s: string) => s.padStart(2, '0');
+                  return `${dummyYear}-${pad(mm)}-${pad(dd)}`;
+                })()}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val) {
+                    const parts = val.split('-');
+                    if (parts.length === 3) {
+                      set({ date: `${parts[1]}-${parts[2]}` });
+                    }
+                  }
+                }}
+              />
             </div>
             <div className="field">
               <label>Team</label>
@@ -432,13 +608,13 @@ function EditorActions({
       <button className="btn ghost" disabled={!dirty} onClick={onDiscard}>
         Discard
       </button>
-      <span className="muted">{dirty ? 'Unsaved changes' : 'All changes saved'}</span>
-      <div className="grow" />
       {onDelete && (
         <button className="btn red" onClick={onDelete}>
           Delete
         </button>
       )}
+      <div style={{ flexGrow: 1 }} />
+      <span className="muted">{dirty ? 'Unsaved changes' : 'All changes saved'}</span>
     </div>
   );
 }

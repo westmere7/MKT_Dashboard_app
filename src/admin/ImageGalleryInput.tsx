@@ -18,6 +18,7 @@ export function ImageGalleryInput({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [urlDraft, setUrlDraft] = useState('');
+  const [uploadState, setUploadState] = useState<{ current: number; total: number; percent: number } | null>(null);
 
   const removeAt = (i: number) => onChange(value.filter((_, j) => j !== i));
 
@@ -32,16 +33,24 @@ export function ImageGalleryInput({
     if (!files || files.length === 0) return;
     setBusy(true);
     setError(null);
+    const fileArray = Array.from(files);
+    setUploadState({ current: 1, total: fileArray.length, percent: 0 });
     try {
       const urls: string[] = [];
-      for (const file of Array.from(files)) {
-        urls.push(await uploadImage(file));
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        setUploadState({ current: i + 1, total: fileArray.length, percent: 0 });
+        const url = await uploadImage(file, (p) => {
+          setUploadState({ current: i + 1, total: fileArray.length, percent: p });
+        });
+        urls.push(url);
       }
       onChange([...value, ...urls]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setBusy(false);
+      setUploadState(null);
       if (fileRef.current) fileRef.current.value = '';
     }
   };
@@ -92,6 +101,12 @@ export function ImageGalleryInput({
           Add
         </button>
       </div>
+
+      {uploadState && (
+        <span className="upload-progress-info" style={{ fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--rmit-red)', marginTop: '4px', display: 'block' }}>
+          Uploading {uploadState.total > 1 ? `${uploadState.current} of ${uploadState.total}` : ''} ({uploadState.percent}%)…
+        </span>
+      )}
 
       {!cloudinaryEnabled && (
         <span className="muted">Image upload off — set up Cloudinary (see CLOUDINARY_SETUP.md) to upload files.</span>

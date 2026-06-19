@@ -45,20 +45,59 @@ function BrandTile({ card }: { card: Card }) {
 function ClockTile() {
   const { data } = useData();
   const [now, setNow] = useState(() => new Date());
+
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
-  const time = now.toLocaleTimeString('en-AU', {
+
+  const options: Intl.DateTimeFormatOptions = {
     hour: '2-digit',
     minute: '2-digit',
     ...(data.settings.showSeconds ? { second: '2-digit' } : {}),
+  };
+
+  const timeVN = now.toLocaleTimeString('en-AU', {
+    ...options,
+    timeZone: 'Asia/Ho_Chi_Minh',
   });
-  const date = now.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const timeMelb = now.toLocaleTimeString('en-AU', {
+    ...options,
+    timeZone: 'Australia/Melbourne',
+  });
+
+  const dateVN = now.toLocaleDateString('en-AU', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+
+  const dateMelb = now.toLocaleDateString('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+
   return (
-    <div className="clock" style={{ justifyContent: 'center', height: '100%' }}>
-      <div className="time">{time}</div>
-      <div className="date">{date}</div>
+    <div className="clock-dual">
+      <div className="clock-timezone">
+        <div className="timezone-header">
+          <span className="badge-tz">Vietnam</span>
+          <span className="date-tz">{dateVN}</span>
+        </div>
+        <div className="time-tz">{timeVN}</div>
+      </div>
+      
+      <div className="clock-timezone">
+        <div className="timezone-header">
+          <span className="badge-tz">Melbourne</span>
+          <span className="date-tz">{dateMelb}</span>
+        </div>
+        <div className="time-tz">{timeMelb}</div>
+      </div>
     </div>
   );
 }
@@ -120,7 +159,7 @@ function TextTile({ card }: { card: Card }) {
 function StatTile({ card }: { card: Card }) {
   const trendClass = card.trend === 'down' ? 'down' : 'up';
   return (
-    <div className="stat" style={{ height: '100%', justifyContent: 'space-between' }}>
+    <div className="stat">
       <div className="stat-label">{card.label}</div>
       <div className="stat-value">{card.value}</div>
       <div className="stat-foot">
@@ -133,11 +172,18 @@ function StatTile({ card }: { card: Card }) {
 
 function VideoTile({ card }: { card: Card }) {
   const id = youtubeId(card.url);
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const embedUrl = id
+    ? `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1${
+        origin ? `&origin=${encodeURIComponent(origin)}` : ''
+      }`
+    : '';
+
   return (
     <>
       {id && (
         <iframe
-          src={`https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&rel=0&playsinline=1`}
+          src={embedUrl}
           title={card.title ?? 'video'}
           allow="autoplay; encrypted-media"
         />
@@ -156,16 +202,27 @@ function BirthdayTile({ card }: { card: Card }) {
   return (
     <div className="birthday" style={{ height: '100%' }}>
       <div className="bday-head">
-        <span className="cake">🎂</span> Upcoming birthdays
+        <span className="cake">🎂</span> Birthdays
       </div>
       <div className="bday-list">
         {people.length === 0 && <div className="bday-meta">No birthdays in this window</div>}
         {people.map((p) => (
-          <div className="bday-row" key={p.name}>
-            {p.photoUrl && <img src={p.photoUrl} alt={p.name} />}
+          <div className={`bday-row ${p.days === 0 ? 'today' : ''}`} key={p.name}>
+            <div className="bday-row-avatar-wrapper">
+              {p.photoUrl ? (
+                <img src={p.photoUrl} alt={p.name} />
+              ) : (
+                <div className="bday-avatar-empty">{p.days === 0 ? '🎂' : '👤'}</div>
+              )}
+            </div>
             <div>
-              <div className="bday-name">{p.name}</div>
-              {p.team && <div className="bday-meta">{p.team}</div>}
+              <div className="bday-name">
+                {p.name}
+                {p.days === 0 && <span className="bday-row-today-icon">🎉</span>}
+              </div>
+              <div className="bday-meta">
+                {p.team ? `${p.team} · ` : ''}{p.dateLabel}
+              </div>
             </div>
             <span className={`bday-when ${p.days === 0 ? 'today' : ''}`}>{birthdayLabel(p.days)}</span>
           </div>
@@ -177,14 +234,61 @@ function BirthdayTile({ card }: { card: Card }) {
 
 function CountdownTile({ card }: { card: Card }) {
   const days = card.days ?? 0;
+  const images = card.images && card.images.length ? card.images : [];
+  const [idx, setIdx] = useState(0);
+
+  // Cycle through the gallery when there's more than one image.
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % images.length), card.intervalMs ?? 4000);
+    return () => clearInterval(t);
+  }, [images.length, card.intervalMs]);
+
+  const hasBg = images.length > 0;
+  const src = hasBg ? images[idx % images.length] : null;
+
   return (
-    <div className="countdown" style={{ height: '100%', justifyContent: 'space-between' }}>
-      <div className="cd-title">{card.title}</div>
-      <div>
-        <span className="cd-days">{days >= 0 ? days : 0}</span>
-        <div className="cd-unit">{days === 1 ? 'day to go' : 'days to go'}</div>
+    <>
+      {hasBg && src && (
+        <>
+          <AnimatePresence initial={false}>
+            <motion.img
+              key={src}
+              src={src}
+              alt={card.title ?? ''}
+              loading="eager"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8 }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          </AnimatePresence>
+          <div
+            className="overlay"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to top, rgba(0, 0, 40, 0.85) 0%, rgba(0, 0, 40, 0.5) 60%, rgba(0, 0, 40, 0.3) 100%)',
+              pointerEvents: 'none',
+            }}
+          />
+        </>
+      )}
+      <div className="countdown" style={hasBg ? { position: 'absolute', inset: 0, padding: '30px' } : undefined}>
+        <div className="cd-title">{card.title}</div>
+        <div>
+          <span className="cd-days">{days >= 0 ? days : 0}</span>
+          <div className="cd-unit">{days === 1 ? 'day to go' : 'days to go'}</div>
+        </div>
+        <div className="cd-unit">{card.dateLabel}</div>
       </div>
-      <div className="cd-unit">{card.dateLabel}</div>
-    </div>
+    </>
   );
 }

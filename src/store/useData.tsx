@@ -53,6 +53,7 @@ interface DataContextValue {
   saveBirthday: (birthday: Birthday) => void;
   deleteBirthday: (id: string) => void;
   updateSettings: (settings: Settings) => void;
+  updatePictures: (pictures: string[], showPermanently?: boolean) => void;
   resetToDemo: () => void;
 }
 
@@ -172,6 +173,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [persist],
   );
 
+  const updatePictures = useCallback(
+    (pictures: string[], showPermanently?: boolean) => {
+      persist({
+        ...dataRef.current,
+        pictures,
+        picturesShowPermanently: showPermanently !== undefined ? showPermanently : dataRef.current.picturesShowPermanently,
+      });
+    },
+    [persist],
+  );
+
   const resetToDemo = useCallback(() => persist(demoData), [persist]);
 
   // Track browser connectivity for the heartbeat.
@@ -203,6 +215,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       saveBirthday,
       deleteBirthday,
       updateSettings,
+      updatePictures,
       resetToDemo,
     }),
     [
@@ -214,6 +227,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       saveBirthday,
       deleteBirthday,
       updateSettings,
+      updatePictures,
       resetToDemo,
     ],
   );

@@ -17,18 +17,21 @@ export function ImageInput({
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
 
   const onPick = async (file: File | undefined) => {
     if (!file) return;
     setBusy(true);
     setError(null);
+    setProgress(0);
     try {
-      const url = await uploadImage(file);
+      const url = await uploadImage(file, (p) => setProgress(p));
       onChange(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setBusy(false);
+      setProgress(null);
       if (fileRef.current) fileRef.current.value = '';
     }
   };
@@ -64,7 +67,7 @@ export function ImageInput({
                   disabled={busy}
                   onClick={() => fileRef.current?.click()}
                 >
-                  {busy ? 'Uploading…' : '⬆ Upload image'}
+                  {busy ? `Uploading (${progress ?? 0}%)…` : '⬆ Upload image'}
                 </button>
                 {value && (
                   <button type="button" className="btn ghost small" onClick={() => onChange('')}>
