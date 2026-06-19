@@ -139,6 +139,25 @@ body {
   opacity: 0.92;
 }
 
+.img-dots {
+  display: flex;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.img-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.img-dot.on {
+  background: var(--white);
+  transform: scale(1.25);
+}
+
 /* ---------- brand tile ---------- */
 
 .brand .brand-mark {

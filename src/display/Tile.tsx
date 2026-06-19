@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { Card } from './cards';
 import { useData } from '../store/useData';
 import { birthdayLabel, youtubeId } from '../lib/util';
@@ -63,18 +64,44 @@ function ClockTile() {
 }
 
 function ImageTile({ card }: { card: Card }) {
+  const images = card.images && card.images.length ? card.images : card.imageUrl ? [card.imageUrl] : [];
+  const [idx, setIdx] = useState(0);
+
+  // Cycle through the gallery when there's more than one image.
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % images.length), card.intervalMs ?? 4000);
+    return () => clearInterval(t);
+  }, [images.length, card.intervalMs]);
+
+  const src = images[idx % images.length];
+
   return (
     <>
-      <img src={card.imageUrl} alt={card.title ?? ''} loading="eager" />
+      <AnimatePresence initial={false}>
+        <motion.img
+          key={src}
+          src={src}
+          alt={card.title ?? ''}
+          loading="eager"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8 }}
+        />
+      </AnimatePresence>
       <div className="overlay" />
       <div className="img-content">
-        {card.status && (
-          <span className={`badge ${card.status === 'ongoing' ? '' : 'soft'}`}>
-            {card.status === 'ongoing' ? 'Live now' : 'Upcoming'}
-          </span>
-        )}
+        {card.status === 'upcoming' && <span className="badge soft">Upcoming</span>}
         <div className="img-title">{card.title}</div>
         {card.dateLabel && <div className="img-date">{card.dateLabel}</div>}
+        {images.length > 1 && (
+          <div className="img-dots">
+            {images.map((_, i) => (
+              <span key={i} className={`img-dot ${i === idx % images.length ? 'on' : ''}`} />
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

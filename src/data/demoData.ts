@@ -24,8 +24,10 @@ export const demoData: DashboardData = {
       status: 'upcoming',
       startDate: '2026-08-09',
       endDate: '2026-08-09',
-      keyVisualUrl: 'https://picsum.photos/seed/rmit-openday/1200/800',
-      portraitUrl: 'https://picsum.photos/seed/rmit-student/800/1200',
+      images: [
+        'https://picsum.photos/seed/rmit-openday/1200/800',
+        'https://picsum.photos/seed/rmit-student/800/1200',
+      ],
       youtubeUrl: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
       stats: [
         { id: 's1', label: 'Registrations', value: '4,820', delta: '+18%', trend: 'up', platform: 'Web' },
@@ -40,9 +42,11 @@ export const demoData: DashboardData = {
       status: 'ongoing',
       startDate: '2026-05-01',
       endDate: '2026-07-31',
-      keyVisualUrl: 'https://picsum.photos/seed/rmit-research/1200/800',
-      portraitUrl: 'https://picsum.photos/seed/rmit-lab/800/1200',
-      youtubeUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+      images: [
+        'https://picsum.photos/seed/rmit-research/1200/800',
+        'https://picsum.photos/seed/rmit-lab/800/1200',
+        'https://picsum.photos/seed/rmit-campus/1200/800',
+      ],
       stats: [
         { id: 's3', label: 'Article reads', value: '38K', delta: '+12%', trend: 'up', platform: 'LinkedIn' },
         { id: 's4', label: 'New followers', value: '6.1K', delta: '+9%', trend: 'up', platform: 'LinkedIn' },
@@ -56,9 +60,10 @@ export const demoData: DashboardData = {
       status: 'ongoing',
       startDate: '2026-06-01',
       endDate: '2026-06-30',
-      keyVisualUrl: 'https://picsum.photos/seed/rmit-scholar/1200/800',
-      portraitUrl: 'https://picsum.photos/seed/rmit-grad/800/1200',
-      youtubeUrl: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
+      images: [
+        'https://picsum.photos/seed/rmit-scholar/1200/800',
+        'https://picsum.photos/seed/rmit-grad/800/1200',
+      ],
       stats: [
         { id: 's5', label: 'Applications', value: '1,304', delta: '+22%', trend: 'up', platform: 'Web' },
         { id: 's6', label: 'TikTok views', value: '540K', delta: '+61%', trend: 'up', platform: 'TikTok' },
@@ -72,9 +77,10 @@ export const demoData: DashboardData = {
       status: 'upcoming',
       startDate: '2026-09-15',
       endDate: '2026-09-15',
-      keyVisualUrl: 'https://picsum.photos/seed/rmit-alumni/1200/800',
-      portraitUrl: 'https://picsum.photos/seed/rmit-network/800/1200',
-      youtubeUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+      images: [
+        'https://picsum.photos/seed/rmit-alumni/1200/800',
+        'https://picsum.photos/seed/rmit-network/800/1200',
+      ],
       stats: [
         { id: 's7', label: 'RSVPs', value: '912', delta: '+7%', trend: 'up', platform: 'Web' },
         { id: 's8', label: 'Engagement', value: '4.8%', delta: '+0.6pt', trend: 'up', platform: 'Instagram' },

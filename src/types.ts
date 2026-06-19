@@ -19,11 +19,16 @@ export interface Campaign {
   status: CampaignStatus;
   startDate: string; // ISO yyyy-mm-dd
   endDate: string; // ISO yyyy-mm-dd
-  keyVisualUrl?: string; // landscape hero image
-  portraitUrl?: string; // tall portrait image
+  images?: string[]; // all campaign images (cycled in image tiles); no orientation distinction
+  imageIntervalSeconds?: number; // how long each image shows; 0/absent = auto
   youtubeUrl?: string; // full youtube watch/share url
   stats: SocialStat[];
   tags?: string[];
+  // Legacy image fields, kept so previously saved data still renders/migrates.
+  keyVisualUrls?: string[];
+  portraitUrls?: string[];
+  keyVisualUrl?: string;
+  portraitUrl?: string;
 }
 
 export interface Birthday {

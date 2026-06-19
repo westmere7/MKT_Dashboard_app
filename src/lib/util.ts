@@ -1,4 +1,4 @@
-import type { Birthday } from '../types';
+import type { Birthday, Campaign } from '../types';
 
 // Extract a YouTube video id from any common url form.
 export function youtubeId(url?: string): string | null {
@@ -45,4 +45,27 @@ export function birthdayLabel(days: number): string {
   if (days === 0) return 'Today';
   if (days === 1) return 'Tomorrow';
   return `in ${days} days`;
+}
+
+// Clean a list of URLs: trim, drop blanks and duplicates.
+export function cleanUrls(raw: (string | undefined)[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const s of raw) {
+    const u = (s ?? '').trim();
+    if (u && !seen.has(u)) {
+      seen.add(u);
+      out.push(u);
+    }
+  }
+  return out;
+}
+
+// All of a campaign's images as one flat list, regardless of how they were
+// stored. Prefers the unified `images` field, falling back to (and merging) the
+// older landscape/portrait fields so previously saved data keeps working. There
+// is no landscape/portrait distinction any more — just a bunch of images.
+export function campaignImages(c: Campaign): string[] {
+  if (c.images && c.images.length) return cleanUrls(c.images);
+  return cleanUrls([...(c.keyVisualUrls ?? []), ...(c.portraitUrls ?? []), c.keyVisualUrl, c.portraitUrl]);
 }

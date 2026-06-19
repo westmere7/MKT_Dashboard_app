@@ -1,5 +1,5 @@
 import type { DashboardData } from '../types';
-import { daysUntil, daysUntilBirthday, formatEventDate, upcomingBirthdays } from '../lib/util';
+import { campaignImages, daysUntil, daysUntilBirthday, formatEventDate, upcomingBirthdays } from '../lib/util';
 
 // A Card is one renderable bento tile. We keep it a single flat shape (rather
 // than a union) so tiles can read just the fields they need. `id` is stable
@@ -33,7 +33,9 @@ export interface Card {
   title?: string;
   tagline?: string;
   status?: string;
-  imageUrl?: string;
+  imageUrl?: string; // first image (back-compat / single-image cards)
+  images?: string[]; // full gallery to cycle through
+  intervalMs?: number; // per-image dwell time when cycling
   url?: string;
   label?: string;
   value?: string;
@@ -63,27 +65,46 @@ export function buildPools(data: DashboardData): CardPools {
     countdown: [],
   };
 
+  // Default per-image dwell: aim to show ~3 images before the layout rotates, so
+  // a gallery cycles through "some" of its pictures within one scene. Clamped to
+  // a comfortable 2-4s. A per-campaign override wins when set (> 0).
+  const autoIntervalMs = Math.max(2000, Math.min(4000, Math.round((settings.rotationSeconds * 1000) / 3)));
+
+  // One unified image pool — no landscape/portrait distinction; image tiles
+  // cover-fill whatever slot they land in. Both image roles draw from this.
+  const imageCards: Card[] = [];
+
   for (const c of campaigns) {
-    if (c.keyVisualUrl) {
-      pools.hero.push({
-        id: `${c.id}-hero`,
-        kind: 'hero',
+    const intervalMs = c.imageIntervalSeconds && c.imageIntervalSeconds > 0 ? c.imageIntervalSeconds * 1000 : autoIntervalMs;
+    const hasVideo = !!(c.youtubeUrl && c.youtubeUrl.trim());
+
+    if (hasVideo) {
+      // A video campaign is represented by its video — prioritise it over its
+      // stills, which are not also shown as image tiles.
+      pools.video.push({
+        id: `${c.id}-video`,
+        kind: 'video',
         tone: 'navy',
         title: c.title,
-        status: c.status,
-        imageUrl: c.keyVisualUrl,
-        dateLabel: formatEventDate(c.startDate),
+        url: c.youtubeUrl,
       });
+    } else {
+      const imgs = campaignImages(c);
+      if (imgs.length) {
+        imageCards.push({
+          id: `${c.id}-img`,
+          kind: 'hero',
+          tone: 'navy',
+          title: c.title,
+          status: c.status,
+          imageUrl: imgs[0],
+          images: imgs,
+          intervalMs,
+          dateLabel: formatEventDate(c.startDate),
+        });
+      }
     }
-    if (c.portraitUrl) {
-      pools.portrait.push({
-        id: `${c.id}-portrait`,
-        kind: 'portrait',
-        tone: 'navy',
-        title: c.title,
-        imageUrl: c.portraitUrl,
-      });
-    }
+
     pools.text.push({
       id: `${c.id}-text`,
       kind: 'text',
@@ -92,15 +113,6 @@ export function buildPools(data: DashboardData): CardPools {
       tagline: c.tagline,
       status: c.status,
     });
-    if (c.youtubeUrl) {
-      pools.video.push({
-        id: `${c.id}-video`,
-        kind: 'video',
-        tone: 'navy',
-        title: c.title,
-        url: c.youtubeUrl,
-      });
-    }
     if (c.status === 'upcoming') {
       pools.countdown.push({
         id: `${c.id}-cd`,
@@ -124,6 +136,11 @@ export function buildPools(data: DashboardData): CardPools {
       });
     }
   }
+
+  // Both image roles share the one pool; the content offset per role spreads
+  // different campaigns across the two image slots in a scene.
+  pools.hero = imageCards;
+  pools.portrait = imageCards;
 
   const people = upcomingBirthdays(birthdays, settings.birthdayWindowDays)
     .slice(0, 5)

@@ -1,14 +1,29 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useData, firebaseEnabled } from '../store/useData';
 import type { Birthday, Campaign, Settings, SocialStat } from '../types';
+import { campaignImages, youtubeThumb } from '../lib/util';
 import { ImageInput } from './ImageInput';
+import { ImageGalleryInput } from './ImageGalleryInput';
 import './admin.css';
 
 const newId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random()}`;
 
 const isDirty = <T,>(a: T, b: T) => JSON.stringify(a) !== JSON.stringify(b);
+
+// Canonicalize a campaign to the array image form, folding in any legacy single
+// URLs. Keeps draft/compare/save consistent for old and new data alike.
+function normalizeCampaign(c: Campaign): Campaign {
+  return {
+    ...c,
+    images: campaignImages(c),
+    keyVisualUrls: [],
+    portraitUrls: [],
+    keyVisualUrl: '',
+    portraitUrl: '',
+  };
+}
 
 // Config portal. Each item shows a compact summary row; clicking it expands the
 // full editor. Edits are held in a local draft until you Save (writes to the
@@ -29,8 +44,7 @@ export function Admin() {
       status: 'upcoming',
       startDate: new Date().toISOString().slice(0, 10),
       endDate: new Date().toISOString().slice(0, 10),
-      keyVisualUrl: '',
-      portraitUrl: '',
+      images: [],
       youtubeUrl: '',
       stats: [],
     });
@@ -196,11 +210,16 @@ function SettingsSection() {
 
 function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: boolean; onToggle: () => void }) {
   const { saveCampaign, deleteCampaign } = useData();
-  const [draft, setDraft] = useState<Campaign>(campaign);
+  const base = useMemo(() => normalizeCampaign(campaign), [campaign]);
+  const [draft, setDraft] = useState<Campaign>(base);
   const set = (patch: Partial<Campaign>) => setDraft((d) => ({ ...d, ...patch }));
-  const dirty = isDirty(draft, campaign);
+  const dirty = isDirty(draft, base);
 
-  const thumb = draft.keyVisualUrl || draft.portraitUrl;
+  const images = draft.images ?? [];
+  const imageCount = images.length;
+  const cycles = images.length > 1;
+  const videoThumb = youtubeThumb(draft.youtubeUrl);
+  const thumb = videoThumb || images[0];
 
   const setStat = (id: string, patch: Partial<SocialStat>) =>
     set({ stats: draft.stats.map((s) => (s.id === id ? { ...s, ...patch } : s)) });
@@ -223,6 +242,8 @@ function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: b
               {draft.endDate && draft.endDate !== draft.startDate ? ` → ${draft.endDate}` : ''}
             </span>
             <span>· {draft.stats.length} stats</span>
+            <span>· {imageCount} {imageCount === 1 ? 'image' : 'images'}</span>
+            {draft.youtubeUrl && <span>· ▶ video</span>}
           </div>
         </div>
         <span className={`chevron ${open ? 'up' : ''}`}>▾</span>
@@ -257,21 +278,38 @@ function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: b
               <input type="date" value={draft.endDate} onChange={(e) => set({ endDate: e.target.value })} />
             </div>
           </div>
-          <ImageInput
-            label="Key visual (landscape)"
-            value={draft.keyVisualUrl ?? ''}
-            onChange={(url) => set({ keyVisualUrl: url })}
-          />
+          <ImageGalleryInput label="Images" value={images} onChange={(urls) => set({ images: urls })} />
+
           <div className="row">
-            <ImageInput
-              label="Portrait image (tall)"
-              value={draft.portraitUrl ?? ''}
-              onChange={(url) => set({ portraitUrl: url })}
-            />
             <div className="field">
-              <label>YouTube URL</label>
-              <input value={draft.youtubeUrl ?? ''} onChange={(e) => set({ youtubeUrl: e.target.value })} />
+              <label>Video (YouTube URL) — shown instead of images when set</label>
+              <div className="video-input">
+                <input
+                  placeholder="Paste a YouTube link"
+                  value={draft.youtubeUrl ?? ''}
+                  onChange={(e) => set({ youtubeUrl: e.target.value })}
+                />
+                {draft.youtubeUrl && (
+                  <button type="button" className="btn ghost small" onClick={() => set({ youtubeUrl: '' })}>
+                    ✕ Remove
+                  </button>
+                )}
+              </div>
+              {videoThumb && <img className="video-thumb" src={videoThumb} alt="" />}
             </div>
+            {cycles && (
+              <div className="field">
+                <label>Image cycle interval (seconds)</label>
+                <input
+                  type="number"
+                  min={1}
+                  placeholder="auto"
+                  value={draft.imageIntervalSeconds ? draft.imageIntervalSeconds : ''}
+                  onChange={(e) => set({ imageIntervalSeconds: Number(e.target.value) })}
+                />
+                <span className="muted">Blank = auto (cycles a few before the layout changes).</span>
+              </div>
+            )}
           </div>
 
           <label className="muted" style={{ fontWeight: 700 }}>
@@ -307,7 +345,7 @@ function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: b
           <EditorActions
             dirty={dirty}
             onSave={() => saveCampaign(draft)}
-            onDiscard={() => setDraft(campaign)}
+            onDiscard={() => setDraft(base)}
             onDelete={() => deleteCampaign(campaign.id)}
           />
         </div>
