@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'Museo 700';
+  src: url('./fonts/Museo700-Regular.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Helvetica';
+  src: url('./fonts/helveticaneueltpro_roman.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* RMIT brand palette */
   --rmit-red: #e61e2a;
@@ -10,8 +26,23 @@
   --gap: 18px;
   --pad: 28px;
 
-  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Helvetica', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--rmit-navy);
+}
+
+h1, h2, h3, h4, h5, h6,
+.brand-mark,
+.img-title,
+.time-tz,
+.stat-value,
+.tagline,
+.cd-days,
+.cd-title,
+.bday-head,
+.v-title,
+.crash-title {
+  font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
 }
 
 * {
@@ -34,6 +65,7 @@ body {
 /* ---------- Display / bento ---------- */
 
 .display {
+  position: relative;
   height: 100vh;
   width: 100vw;
   display: flex;
@@ -109,12 +141,23 @@ body {
   padding: 0;
 }
 
-.tile-image img {
+.tile-image img,
+.countdown-bg-img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  animation: pan-slow 5s linear infinite alternate;
+}
+
+@keyframes pan-slow {
+  0% {
+    transform: scale(1.06) translate(-1.5%, -1%);
+  }
+  100% {
+    transform: scale(1.12) translate(1.5%, 1%);
+  }
 }
 
 .tile-image .overlay {
@@ -467,20 +510,25 @@ body {
 /* ---------- ticker ---------- */
 
 .ticker {
-  height: 38px;
-  flex: none;
+  position: absolute;
+  bottom: 8px;
+  left: var(--pad);
+  right: var(--pad);
+  height: 16px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   color: var(--white);
   font-weight: 600;
-  font-size: 0.95rem;
-  padding: 0 6px;
+  font-size: 0.75rem;
+  padding: 0 4px;
+  pointer-events: none;
+  z-index: 10;
 }
 
 .live-dot {
-  width: 10px;
-  height: 10px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   background: var(--white);
   animation: pulse 2s infinite ease-in-out;

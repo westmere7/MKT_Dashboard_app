@@ -106,6 +106,14 @@ function ImageTile({ card }: { card: Card }) {
   const images = card.images && card.images.length ? card.images : card.imageUrl ? [card.imageUrl] : [];
   const [idx, setIdx] = useState(0);
 
+  // Preload all images in background to prime the browser cache
+  useEffect(() => {
+    images.forEach((url) => {
+      const img = new Image();
+      img.src = url;
+    });
+  }, [images]);
+
   // Cycle through the gallery when there's more than one image.
   useEffect(() => {
     if (images.length <= 1) return;
@@ -113,21 +121,54 @@ function ImageTile({ card }: { card: Card }) {
     return () => clearInterval(t);
   }, [images.length, card.intervalMs]);
 
-  const src = images[idx % images.length];
+  const targetSrc = images[idx % images.length] || null;
+  const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!targetSrc) {
+      setDisplaySrc(null);
+      return;
+    }
+
+    // Set immediately on first render if nothing is displayed yet
+    if (!displaySrc) {
+      setDisplaySrc(targetSrc);
+      return;
+    }
+
+    // Preload the target image
+    const img = new Image();
+    img.src = targetSrc;
+    const handleLoad = () => {
+      setDisplaySrc(targetSrc);
+    };
+
+    if (img.complete) {
+      handleLoad();
+    } else {
+      img.onload = handleLoad;
+    }
+
+    return () => {
+      img.onload = null;
+    };
+  }, [targetSrc, displaySrc]);
 
   return (
     <>
       <AnimatePresence initial={false}>
-        <motion.img
-          key={src}
-          src={src}
-          alt={card.title ?? ''}
-          loading="eager"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }}
-        />
+        {displaySrc && (
+          <motion.img
+            key={displaySrc}
+            src={displaySrc}
+            alt={card.title ?? ''}
+            loading="eager"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+          />
+        )}
       </AnimatePresence>
       <div className="overlay" />
       <div className="img-content">
@@ -237,6 +278,14 @@ function CountdownTile({ card }: { card: Card }) {
   const images = card.images && card.images.length ? card.images : [];
   const [idx, setIdx] = useState(0);
 
+  // Preload all images in background to prime the browser cache
+  useEffect(() => {
+    images.forEach((url) => {
+      const img = new Image();
+      img.src = url;
+    });
+  }, [images]);
+
   // Cycle through the gallery when there's more than one image.
   useEffect(() => {
     if (images.length <= 1) return;
@@ -245,16 +294,48 @@ function CountdownTile({ card }: { card: Card }) {
   }, [images.length, card.intervalMs]);
 
   const hasBg = images.length > 0;
-  const src = hasBg ? images[idx % images.length] : null;
+  const targetSrc = hasBg ? images[idx % images.length] : null;
+  const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!targetSrc) {
+      setDisplaySrc(null);
+      return;
+    }
+
+    // Set immediately on first render if nothing is displayed yet
+    if (!displaySrc) {
+      setDisplaySrc(targetSrc);
+      return;
+    }
+
+    // Preload the target image
+    const img = new Image();
+    img.src = targetSrc;
+    const handleLoad = () => {
+      setDisplaySrc(targetSrc);
+    };
+
+    if (img.complete) {
+      handleLoad();
+    } else {
+      img.onload = handleLoad;
+    }
+
+    return () => {
+      img.onload = null;
+    };
+  }, [targetSrc, displaySrc]);
 
   return (
     <>
-      {hasBg && src && (
+      {hasBg && displaySrc && (
         <>
           <AnimatePresence initial={false}>
             <motion.img
-              key={src}
-              src={src}
+              className="countdown-bg-img"
+              key={displaySrc}
+              src={displaySrc}
               alt={card.title ?? ''}
               loading="eager"
               initial={{ opacity: 0 }}
