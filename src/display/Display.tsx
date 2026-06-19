@@ -41,10 +41,11 @@ export function Display() {
     return () => clearInterval(t);
   }, [data.settings.rotationSeconds]);
 
-  const tiles = useMemo(
-    () => buildScene(TEMPLATES[sceneIdx % TEMPLATES.length], pools, sceneIdx),
-    [sceneIdx, pools],
-  );
+  // Geometry rotates every tick (smooth rearrange); content advances only once
+  // per full loop of templates, so cards cycle without fighting the morph.
+  const template = TEMPLATES[sceneIdx % TEMPLATES.length];
+  const contentCycle = Math.floor(sceneIdx / TEMPLATES.length);
+  const tiles = useMemo(() => buildScene(template, pools, contentCycle), [template, pools, contentCycle]);
 
   // Rotate ticker message alongside the layout.
   const messages = data.settings.tickerMessages;
@@ -53,29 +54,39 @@ export function Display() {
   return (
     <div className="display">
       <div className="bento">
-        <AnimatePresence mode="popLayout">
-          {tiles.map((tile) => {
-            const isImage = tile.card.kind === 'hero' || tile.card.kind === 'portrait';
-            const isVideo = tile.card.kind === 'video';
-            return (
-              <motion.div
-                key={tile.card.id}
-                layout
-                initial={{ opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.92 }}
-                transition={{ type: 'spring', stiffness: 220, damping: 30, mass: 0.9 }}
-                className={`tile ${tile.card.tone} ${isImage ? 'tile-image' : ''} ${isVideo ? 'tile-video' : ''}`}
-                style={{
-                  gridColumn: `${tile.col} / span ${tile.w}`,
-                  gridRow: `${tile.row} / span ${tile.h}`,
-                }}
-              >
-                <TileContent card={tile.card} />
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+        {tiles.map((tile) => {
+          const isImage = tile.card.kind === 'hero' || tile.card.kind === 'portrait';
+          const isVideo = tile.card.kind === 'video';
+          return (
+            <motion.div
+              // Keyed by role, not card id: the tile persists across templates and
+              // Framer Motion animates it sliding/resizing to its new slot.
+              key={tile.role}
+              layout
+              transition={{ type: 'spring', stiffness: 200, damping: 26, mass: 0.9 }}
+              className={`tile ${tile.card.tone} ${isImage ? 'tile-image' : ''} ${isVideo ? 'tile-video' : ''}`}
+              style={{
+                gridColumn: `${tile.col} / span ${tile.w}`,
+                gridRow: `${tile.row} / span ${tile.h}`,
+              }}
+            >
+              {/* Inner crossfade swaps the content when the card rotates, while
+                  the outer tile keeps morphing in place. */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={tile.card.id}
+                  className="tile-inner"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <TileContent card={tile.card} />
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
+          );
+        })}
       </div>
 
       <div className="ticker">

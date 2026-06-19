@@ -144,3 +144,49 @@
   margin-bottom: 18px;
   font-size: 0.9rem;
 }
+
+/* ---------- image input ---------- */
+
+.image-input {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.image-thumb {
+  width: 84px;
+  height: 84px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex: none;
+  border: 1px solid #d6d6de;
+  background: #fff;
+}
+
+.image-thumb.empty {
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  color: #9a9aa8;
+  text-align: center;
+}
+
+.image-input-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.image-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.image-error {
+  color: var(--rmit-red);
+  font-size: 0.8rem;
+}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useData, firebaseEnabled } from '../store/useData';
 import type { Birthday, Campaign, Settings, SocialStat } from '../types';
+import { ImageInput } from './ImageInput';
 import './admin.css';
 
 const newId = () =>
@@ -188,15 +189,17 @@ function CampaignEditor({ campaign }: { campaign: Campaign }) {
           <input type="date" value={draft.endDate} onChange={(e) => set({ endDate: e.target.value })} />
         </div>
       </div>
-      <div className="field">
-        <label>Key visual image URL (landscape)</label>
-        <input value={draft.keyVisualUrl ?? ''} onChange={(e) => set({ keyVisualUrl: e.target.value })} />
-      </div>
+      <ImageInput
+        label="Key visual (landscape)"
+        value={draft.keyVisualUrl ?? ''}
+        onChange={(url) => set({ keyVisualUrl: url })}
+      />
       <div className="row">
-        <div className="field">
-          <label>Portrait image URL (tall)</label>
-          <input value={draft.portraitUrl ?? ''} onChange={(e) => set({ portraitUrl: e.target.value })} />
-        </div>
+        <ImageInput
+          label="Portrait image (tall)"
+          value={draft.portraitUrl ?? ''}
+          onChange={(url) => set({ portraitUrl: url })}
+        />
         <div className="field">
           <label>YouTube URL</label>
           <input value={draft.youtubeUrl ?? ''} onChange={(e) => set({ youtubeUrl: e.target.value })} />
@@ -266,10 +269,8 @@ function BirthdayEditor({ birthday }: { birthday: Birthday }) {
           <input value={draft.team ?? ''} onChange={(e) => set({ team: e.target.value })} />
         </div>
       </div>
-      <div className="field">
-        <label>Photo URL</label>
-        <input value={draft.photoUrl ?? ''} onChange={(e) => set({ photoUrl: e.target.value })} />
-      </div>
+      <ImageInput label="Photo" value={draft.photoUrl ?? ''} onChange={(url) => set({ photoUrl: url })} />
+
       <div className="btn-row">
         <button className="btn" onClick={() => saveBirthday(draft)}>
           Save birthday

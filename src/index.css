@@ -6,9 +6,9 @@
   --up: #18b46b;
   --down: #ff5a5f;
 
-  --radius: 24px;
-  --gap: 16px;
-  --pad: 24px;
+  --radius: 26px;
+  --gap: 18px;
+  --pad: 28px;
 
   font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
   color: var(--rmit-navy);
@@ -56,12 +56,20 @@ body {
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
-  padding: 22px;
+  padding: 30px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   transition: background-color 0.7s ease, color 0.7s ease;
   will-change: transform;
+}
+
+/* Inner wrapper that crossfades content while the tile morphs in place. */
+.tile-inner {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .tile.white {
@@ -98,17 +106,17 @@ body {
   position: relative;
   z-index: 1;
   margin-top: auto;
-  padding: 22px;
+  padding: 30px;
   color: var(--white);
 }
 
 .badge {
   display: inline-block;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: clamp(0.85rem, 1vw, 1.1rem);
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 5px 12px;
+  padding: 7px 16px;
   border-radius: 999px;
   background: var(--rmit-red);
   color: var(--white);
@@ -120,21 +128,21 @@ body {
 }
 
 .img-title {
-  font-size: clamp(1.2rem, 1.9vw, 2rem);
-  font-weight: 700;
-  line-height: 1.1;
-  margin: 10px 0 4px;
+  font-size: clamp(1.6rem, 2.8vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.05;
+  margin: 14px 0 6px;
 }
 
 .img-date {
-  font-size: 1rem;
-  opacity: 0.9;
+  font-size: clamp(1.05rem, 1.3vw, 1.5rem);
+  opacity: 0.92;
 }
 
 /* ---------- brand tile ---------- */
 
 .brand .brand-mark {
-  font-size: clamp(1.6rem, 3vw, 3rem);
+  font-size: clamp(2.2rem, 4vw, 4.4rem);
   font-weight: 800;
   line-height: 1;
 }
@@ -144,35 +152,36 @@ body {
 }
 
 .brand .brand-sub {
-  font-size: 0.95rem;
+  font-size: clamp(1rem, 1.3vw, 1.5rem);
   opacity: 0.8;
+  margin-top: 6px;
 }
 
 /* ---------- clock tile ---------- */
 
 .clock .time {
-  font-size: clamp(2rem, 4.5vw, 4.5rem);
+  font-size: clamp(2.6rem, 5.2vw, 5.5rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.02em;
 }
 
 .clock .date {
-  font-size: 1.1rem;
+  font-size: clamp(1.05rem, 1.4vw, 1.6rem);
   opacity: 0.85;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 /* ---------- stat tile ---------- */
 
 .stat .stat-label {
-  font-size: 1rem;
+  font-size: clamp(1.05rem, 1.4vw, 1.6rem);
   opacity: 0.8;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .stat .stat-value {
-  font-size: clamp(2.2rem, 5vw, 5rem);
+  font-size: clamp(2.8rem, 6vw, 6.5rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -181,8 +190,8 @@ body {
 .stat .stat-foot {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 1rem;
+  gap: 12px;
+  font-size: clamp(1rem, 1.3vw, 1.5rem);
 }
 
 .delta {
@@ -205,7 +214,7 @@ body {
 /* ---------- text / tagline tile ---------- */
 
 .text-tile .text-status {
-  font-size: 0.85rem;
+  font-size: clamp(0.9rem, 1.1vw, 1.2rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -213,31 +222,31 @@ body {
 }
 
 .text-tile .tagline {
-  font-size: clamp(1.4rem, 2.6vw, 2.8rem);
+  font-size: clamp(1.8rem, 3.4vw, 3.8rem);
   font-weight: 700;
-  line-height: 1.12;
+  line-height: 1.1;
 }
 
 .text-tile .text-title {
-  font-size: 1rem;
+  font-size: clamp(1.05rem, 1.4vw, 1.6rem);
   opacity: 0.8;
 }
 
 /* ---------- countdown tile ---------- */
 
 .countdown .cd-days {
-  font-size: clamp(3rem, 7vw, 7rem);
+  font-size: clamp(4rem, 8.5vw, 9rem);
   font-weight: 800;
   line-height: 0.9;
 }
 
 .countdown .cd-unit {
-  font-size: 1.1rem;
+  font-size: clamp(1.1rem, 1.5vw, 1.7rem);
   opacity: 0.85;
 }
 
 .countdown .cd-title {
-  font-size: 1.2rem;
+  font-size: clamp(1.3rem, 1.8vw, 2.1rem);
   font-weight: 700;
 }
 
@@ -267,11 +276,11 @@ body {
   position: relative;
   z-index: 1;
   margin-top: auto;
-  padding: 22px;
+  padding: 30px;
   color: var(--white);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .play-dot {
@@ -293,7 +302,7 @@ body {
 }
 
 .v-title {
-  font-size: 1.2rem;
+  font-size: clamp(1.3rem, 1.9vw, 2.2rem);
   font-weight: 700;
 }
 
@@ -302,32 +311,32 @@ body {
 .birthday .bday-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 1.1rem;
-  font-weight: 700;
+  gap: 12px;
+  font-size: clamp(1.2rem, 1.6vw, 1.9rem);
+  font-weight: 800;
 }
 
 .birthday .cake {
-  font-size: 1.4rem;
+  font-size: clamp(1.5rem, 2vw, 2.4rem);
 }
 
 .bday-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 14px;
+  gap: 16px;
+  margin-top: 18px;
   overflow: hidden;
 }
 
 .bday-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .bday-row img {
-  width: 42px;
-  height: 42px;
+  width: clamp(48px, 4vw, 70px);
+  height: clamp(48px, 4vw, 70px);
   border-radius: 999px;
   object-fit: cover;
   flex: none;
@@ -335,16 +344,18 @@ body {
 
 .bday-name {
   font-weight: 700;
+  font-size: clamp(1.05rem, 1.4vw, 1.6rem);
 }
 
 .bday-meta {
-  font-size: 0.85rem;
+  font-size: clamp(0.9rem, 1.1vw, 1.2rem);
   opacity: 0.7;
 }
 
 .bday-when {
   margin-left: auto;
   font-weight: 700;
+  font-size: clamp(1rem, 1.3vw, 1.5rem);
   color: var(--rmit-red);
 }
 
