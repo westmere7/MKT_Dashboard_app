@@ -39,46 +39,51 @@ export const INVENTORY: Role[] = [
 
 // Each template: one Geom per INVENTORY role, in the same order. All four are
 // verified perfect tilings of the 12x6 canvas.
+//
+// The VIDEO role is always given a landscape slot close to its native 16:9 (a
+// 6x3 cell is ~1.9:1, a 4x2 cell is ~1.95:1) so video fills with minimal crop,
+// rather than being forced into a wide/short or tall cell. It still moves and
+// (mildly) resizes between templates, so the layout stays dynamic.
 export const TEMPLATES: Geom[][] = [
-  // A — big hero top-left, tall portrait right
+  // A — hero top-left, video beneath it, tall portrait right
   [
     { col: 7, row: 1, w: 3, h: 2 }, // brand
     { col: 7, row: 3, w: 3, h: 2 }, // clock
-    { col: 1, row: 1, w: 6, h: 4 }, // hero
+    { col: 1, row: 1, w: 6, h: 3 }, // hero
     { col: 10, row: 1, w: 3, h: 4 }, // portrait
-    { col: 1, row: 5, w: 6, h: 2 }, // video
+    { col: 1, row: 4, w: 6, h: 3 }, // video (6x3 ~ landscape)
     { col: 7, row: 5, w: 3, h: 2 }, // stat
     { col: 10, row: 5, w: 3, h: 2 }, // birthday
   ],
-  // B — tall portrait left, hero band centre
+  // B — tall portrait left, hero over video in the centre
   [
-    { col: 7, row: 1, w: 3, h: 2 }, // brand
-    { col: 4, row: 1, w: 3, h: 2 }, // clock
-    { col: 4, row: 3, w: 6, h: 2 }, // hero
-    { col: 1, row: 1, w: 3, h: 6 }, // portrait
-    { col: 4, row: 5, w: 6, h: 2 }, // video
-    { col: 10, row: 1, w: 3, h: 2 }, // stat
-    { col: 10, row: 3, w: 3, h: 4 }, // birthday
+    { col: 1, row: 5, w: 3, h: 2 }, // brand
+    { col: 10, row: 1, w: 3, h: 2 }, // clock
+    { col: 4, row: 1, w: 6, h: 3 }, // hero
+    { col: 1, row: 1, w: 3, h: 4 }, // portrait
+    { col: 4, row: 4, w: 6, h: 3 }, // video (6x3 ~ landscape)
+    { col: 10, row: 3, w: 3, h: 2 }, // stat
+    { col: 10, row: 5, w: 3, h: 2 }, // birthday
   ],
-  // C — hero feature on the right, info column left
+  // C — hero/video stack on the right, info column left
   [
-    { col: 1, row: 1, w: 3, h: 2 }, // brand
-    { col: 4, row: 1, w: 3, h: 2 }, // clock
-    { col: 7, row: 1, w: 6, h: 4 }, // hero
-    { col: 4, row: 3, w: 3, h: 4 }, // portrait
-    { col: 7, row: 5, w: 6, h: 2 }, // video
-    { col: 1, row: 3, w: 3, h: 2 }, // stat
+    { col: 4, row: 1, w: 3, h: 2 }, // brand
+    { col: 4, row: 3, w: 3, h: 2 }, // clock
+    { col: 7, row: 1, w: 6, h: 3 }, // hero
+    { col: 1, row: 1, w: 3, h: 4 }, // portrait
+    { col: 7, row: 4, w: 6, h: 3 }, // video (6x3 ~ landscape)
+    { col: 4, row: 5, w: 3, h: 2 }, // stat
     { col: 1, row: 5, w: 3, h: 2 }, // birthday
   ],
-  // D — wide hero banner across the top
+  // D — wide hero banner top, compact landscape video mid-left
   [
-    { col: 7, row: 3, w: 3, h: 2 }, // brand
+    { col: 4, row: 5, w: 5, h: 2 }, // brand
     { col: 10, row: 1, w: 3, h: 2 }, // clock
     { col: 1, row: 1, w: 9, h: 2 }, // hero
     { col: 1, row: 3, w: 3, h: 4 }, // portrait
-    { col: 4, row: 5, w: 6, h: 2 }, // video
-    { col: 4, row: 3, w: 3, h: 2 }, // stat
-    { col: 10, row: 3, w: 3, h: 4 }, // birthday
+    { col: 4, row: 3, w: 4, h: 2 }, // video (4x2 ~ landscape)
+    { col: 9, row: 5, w: 4, h: 2 }, // stat
+    { col: 8, row: 3, w: 5, h: 2 }, // birthday
   ],
 ];
 

@@ -254,13 +254,19 @@ body {
 
 .tile-video {
   padding: 0;
+  container-type: size;
 }
 
+/* Cover-fill the card: the 16:9 iframe is scaled to be at least as large as the
+   card in both dimensions and centred, so the video always fills the tile and
+   the overflow is cropped (no black letterbox bars), matching the image tiles. */
 .tile-video iframe {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100cqw, calc(100cqh * 16 / 9));
+  height: max(100cqh, calc(100cqw * 9 / 16));
   border: 0;
   pointer-events: none;
 }
