@@ -1,0 +1,146 @@
+.admin {
+  height: 100vh;
+  overflow: auto;
+  background: #f4f4f7;
+  color: var(--rmit-navy);
+  padding: 28px;
+}
+
+.admin-inner {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.admin-header .grow {
+  flex: 1;
+}
+
+.admin h2 {
+  font-size: 1.15rem;
+  margin: 28px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--rmit-red);
+}
+
+.card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 84, 0.08);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.field label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+.field input,
+.field select,
+.field textarea {
+  font: inherit;
+  padding: 9px 11px;
+  border: 1px solid #d6d6de;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--rmit-navy);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.btn {
+  font: inherit;
+  font-weight: 700;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: var(--rmit-navy);
+  color: #fff;
+}
+
+.btn.red {
+  background: var(--rmit-red);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--rmit-navy);
+  border: 1px solid #c9c9d4;
+}
+
+.btn.small {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.link {
+  color: var(--rmit-red);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.muted {
+  opacity: 0.6;
+  font-size: 0.85rem;
+}
+
+.stat-edit {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.notice {
+  background: #fff3cd;
+  border: 1px solid #ffe08a;
+  color: #6b5300;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+}
