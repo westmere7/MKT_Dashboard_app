@@ -140,6 +140,14 @@ body {
   color: var(--navy-color, var(--rmit-navy));
 }
 
+.tile.tile-birthday {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--white-color, var(--white));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
 .tile.navy {
   background: var(--navy-color, var(--rmit-navy));
   color: var(--white-color, var(--white));
@@ -262,46 +270,47 @@ body {
 /* ---------- clock tile ---------- */
 
 .clock-dual {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  width: 100%;
-}
-
-.clock-timezone {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.timezone-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto; /* Column 1 (time) is flexible, Column 2 (location) is auto and perfectly aligned vertically */
+  column-gap: 24px;
+  row-gap: clamp(24px, 3.5vw, 42px); /* Increased spacing between the two times */
   align-items: center;
-  gap: 10px;
+  width: 100%;
+  padding-top: clamp(16px, 2.8vw, 30px); /* Add more top padding as requested */
+  padding-bottom: clamp(10px, 1.8vw, 18px);
+}
+
+.timezone-info-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .badge-tz {
   background: rgba(255, 255, 255, 0.15);
   color: var(--white);
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: min(7.5cqw, 8cqh, 1.8rem);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: min(8.5cqw, 8.5cqh, 1.3rem);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border: 1px solid rgba(255, 255, 255, 0.25);
   display: inline-block;
   line-height: 1.2;
+  text-align: left;
 }
 
 .date-tz {
-  font-size: min(7.5cqw, 8cqh, 1.9rem);
+  font-size: min(8.5cqw, 8.5cqh, 1.3rem);
   opacity: 0.85;
   color: var(--white);
+  text-align: left;
 }
 
 .time-tz {
-  font-size: min(18cqw, 18cqh);
+  font-size: min(21cqw, 21cqh, 4.2rem); /* Increased time size */
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.04em;
@@ -466,12 +475,23 @@ body {
 
 /* ---------- birthday tile ---------- */
 
+.birthday {
+  /* --bday-scale is driven by the auto-fit logic in Tile.tsx; it shrinks the
+     avatars and text together when the list is too long for the card. */
+  --bday-scale: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .birthday .bday-head {
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: clamp(1.2rem, 1.6vw, 1.9rem);
   font-weight: 800;
+  flex: none;
 }
 
 .birthday .cake {
@@ -481,20 +501,28 @@ body {
 .bday-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 18px;
+  gap: calc(16px * var(--bday-scale));
+  margin-top: calc(18px * var(--bday-scale));
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
+}
+
+.bday-upcoming-container {
+  display: flex;
+  flex-direction: column;
+  gap: calc(16px * var(--bday-scale));
 }
 
 .bday-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: calc(14px * var(--bday-scale));
 }
 
 .bday-row img {
-  width: clamp(48px, 4vw, 70px);
-  height: clamp(48px, 4vw, 70px);
+  width: calc(clamp(48px, 4vw, 70px) * var(--bday-scale));
+  height: calc(clamp(48px, 4vw, 70px) * var(--bday-scale));
   border-radius: 999px;
   object-fit: cover;
   flex: none;
@@ -502,24 +530,24 @@ body {
 
 .bday-name {
   font-weight: 700;
-  font-size: clamp(1.05rem, 1.4vw, 1.6rem);
+  font-size: calc(clamp(1.05rem, 1.4vw, 1.6rem) * var(--bday-scale));
 }
 
 .bday-meta {
-  font-size: clamp(0.9rem, 1.1vw, 1.2rem);
+  font-size: calc(clamp(0.9rem, 1.1vw, 1.2rem) * var(--bday-scale));
   opacity: 0.7;
 }
 
 .bday-when {
   margin-left: auto;
   font-weight: 700;
-  font-size: clamp(1rem, 1.3vw, 1.5rem);
-  color: var(--rmit-red);
+  font-size: calc(clamp(1rem, 1.3vw, 1.5rem) * var(--bday-scale));
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .bday-when.today {
-  background: var(--rmit-red);
-  color: var(--white);
+  background: var(--white);
+  color: var(--rmit-red);
   padding: 3px 10px;
   border-radius: 999px;
 }
@@ -621,59 +649,59 @@ body {
 
 /* Empty avatar placeholder styled consistently */
 .bday-avatar-empty {
-  width: clamp(48px, 4vw, 70px);
-  height: clamp(48px, 4vw, 70px);
+  width: calc(clamp(48px, 4vw, 70px) * var(--bday-scale, 1));
+  height: calc(clamp(48px, 4vw, 70px) * var(--bday-scale, 1));
   border-radius: 999px;
-  background: #e7e7ee;
-  color: var(--rmit-navy);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.2rem, 1.6vw, 2rem);
+  font-size: calc(clamp(1.2rem, 1.6vw, 2rem) * var(--bday-scale, 1));
   flex: none;
 }
 
 /* Highlight row for active birthday today */
 .bday-row.today {
-  background: rgba(230, 30, 42, 0.08); /* soft red background glow */
-  border: 2px dashed rgba(230, 30, 42, 0.35);
+  background: rgba(255, 255, 255, 0.1); /* subtle white glow on red */
+  border: 2px dashed rgba(255, 255, 255, 0.35);
   border-radius: 18px;
-  padding: 10px 14px;
-  margin: 6px -10px; /* pull row slightly wider for accent */
-  box-shadow: 0 4px 12px rgba(230, 30, 42, 0.08);
-  animation: row-pulse 3s infinite ease-in-out alternate;
+  padding: calc(10px * var(--bday-scale, 1)) calc(14px * var(--bday-scale, 1));
+  margin: calc(6px * var(--bday-scale, 1)) -10px; /* pull row slightly wider for accent */
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+  animation: row-pulse-white 3s infinite ease-in-out alternate;
 }
 
-@keyframes row-pulse {
-  0% { transform: scale(1); border-color: rgba(230, 30, 42, 0.35); }
-  100% { transform: scale(1.015); border-color: rgba(230, 30, 42, 0.6); }
+@keyframes row-pulse-white {
+  0% { transform: scale(1); border-color: rgba(255, 255, 255, 0.35); }
+  100% { transform: scale(1.015); border-color: rgba(255, 255, 255, 0.6); }
 }
 
-/* Make celebrant avatar bigger and add red border */
+/* Make celebrant avatar bigger and add white border */
 .bday-row.today img,
 .bday-row.today .bday-avatar-empty {
-  width: clamp(56px, 5vw, 82px);
-  height: clamp(56px, 5vw, 82px);
-  border: 3px solid var(--rmit-red);
-  box-shadow: 0 4px 12px rgba(230, 30, 42, 0.25);
+  width: calc(clamp(56px, 5vw, 82px) * var(--bday-scale, 1));
+  height: calc(clamp(56px, 5vw, 82px) * var(--bday-scale, 1));
+  border: 3px solid var(--white);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
 }
 
 .bday-row.today .bday-avatar-empty {
-  background: #ffebeb;
-  font-size: clamp(1.8rem, 2.2vw, 2.6rem);
+  background: rgba(255, 255, 255, 0.2);
+  font-size: calc(clamp(1.8rem, 2.2vw, 2.6rem) * var(--bday-scale, 1));
 }
 
 /* Make name and metadata more prominent today */
 .bday-row.today .bday-name {
-  font-size: clamp(1.2rem, 1.6vw, 1.8rem);
-  color: var(--rmit-red);
+  font-size: calc(clamp(1.2rem, 1.6vw, 1.8rem) * var(--bday-scale, 1));
+  color: var(--white);
   font-weight: 800;
   display: flex;
   align-items: center;
 }
 
 .bday-row.today .bday-meta {
-  font-size: clamp(0.95rem, 1.2vw, 1.3rem);
+  font-size: calc(clamp(0.95rem, 1.2vw, 1.3rem) * var(--bday-scale, 1));
   font-weight: 600;
   opacity: 0.85;
 }
@@ -682,7 +710,7 @@ body {
 .bday-row-today-icon {
   display: inline-block;
   margin-left: 8px;
-  font-size: clamp(1.1rem, 1.5vw, 1.7rem);
+  font-size: calc(clamp(1.1rem, 1.5vw, 1.7rem) * var(--bday-scale, 1));
   animation: popper-bounce 1.5s ease-in-out infinite alternate;
 }
 
@@ -706,67 +734,61 @@ body {
 }
 
 .tile-short .bday-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px 28px;
-  margin-top: 18px;
-}
-
-@container (min-width: 440px) {
-  .tile-short .bday-list {
-    grid-template-columns: 1fr 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: calc(16px * var(--bday-scale, 1));
+  margin-top: calc(18px * var(--bday-scale, 1));
 }
 
 .tile-short .bday-row img,
 .tile-short .bday-avatar-empty {
-  width: clamp(48px, 3.8vw, 64px);
-  height: clamp(48px, 3.8vw, 64px);
+  width: calc(clamp(48px, 3.8vw, 64px) * var(--bday-scale, 1));
+  height: calc(clamp(48px, 3.8vw, 64px) * var(--bday-scale, 1));
 }
 
 .tile-short .bday-avatar-empty {
-  font-size: clamp(1.1rem, 1.4vw, 1.8rem);
+  font-size: calc(clamp(1.1rem, 1.4vw, 1.8rem) * var(--bday-scale, 1));
 }
 
 .tile-short .bday-row.today img,
 .tile-short .bday-row.today .bday-avatar-empty {
-  width: clamp(54px, 4.4vw, 72px);
-  height: clamp(54px, 4.4vw, 72px);
-  border-width: 2.5px;
+  width: calc(clamp(54px, 4.4vw, 72px) * var(--bday-scale, 1));
+  height: calc(clamp(54px, 4.4vw, 72px) * var(--bday-scale, 1));
+  border: 2.5px solid var(--white);
 }
 
 .tile-short .bday-row.today .bday-avatar-empty {
-  font-size: clamp(1.6rem, 2vw, 2.4rem);
+  font-size: calc(clamp(1.6rem, 2vw, 2.4rem) * var(--bday-scale, 1));
 }
 
 .tile-short .bday-row.today {
-  padding: 8px 12px;
-  margin: 3px -8px;
+  padding: calc(8px * var(--bday-scale, 1)) calc(12px * var(--bday-scale, 1));
+  margin: calc(3px * var(--bday-scale, 1)) -8px;
   border-radius: 14px;
 }
 
 .tile-short .bday-name {
-  font-size: clamp(0.95rem, 1.2vw, 1.3rem);
+  font-size: calc(clamp(0.95rem, 1.2vw, 1.3rem) * var(--bday-scale, 1));
 }
 
 .tile-short .bday-row.today .bday-name {
-  font-size: clamp(1.05rem, 1.4vw, 1.5rem);
+  font-size: calc(clamp(1.05rem, 1.4vw, 1.5rem) * var(--bday-scale, 1));
 }
 
 .tile-short .bday-meta {
-  font-size: clamp(0.8rem, 1vw, 0.95rem);
+  font-size: calc(clamp(0.8rem, 1vw, 0.95rem) * var(--bday-scale, 1));
 }
 
 .tile-short .bday-row.today .bday-meta {
-  font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+  font-size: calc(clamp(0.85rem, 1.1vw, 1.05rem) * var(--bday-scale, 1));
 }
 
 .tile-short .bday-when {
-  font-size: clamp(0.9rem, 1.1vw, 1.2rem);
+  font-size: calc(clamp(0.9rem, 1.1vw, 1.2rem) * var(--bday-scale, 1));
 }
 
 .tile-short .bday-row-today-icon {
-  font-size: clamp(1rem, 1.3vw, 1.4rem);
+  font-size: calc(clamp(1rem, 1.3vw, 1.4rem) * var(--bday-scale, 1));
 }
 
 /* ---------- clock and events tile ---------- */
@@ -781,7 +803,7 @@ body {
 
 .clock-and-events.tile-layout-vertical {
   flex-direction: column;
-  gap: 24px;
+  gap: clamp(12px, 2vw, 18px);
 }
 
 .clock-and-events.tile-layout-wide {
@@ -807,22 +829,33 @@ body {
 
 .clock-logo-container {
   display: flex;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
-  margin-bottom: 32px; /* Spacing between logo and time */
+  margin-bottom: 0;
 }
 
 .clock-logo {
-  height: clamp(55px, 7vw, 90px); /* A bit bigger logo */
+  height: clamp(32px, 4.5vw, 52px);
   width: auto;
   opacity: 0.95;
   transition: height 0.3s ease;
 }
 
-.clock-dual {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
+.clock-tagline {
+  font-size: clamp(0.65rem, 0.9vw, 1.15rem);
+  color: var(--white);
+  opacity: 0.95;
+  font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  text-align: right;
+  line-height: 1.15;
+}
+
+.clock-divider {
+  border: none;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.25);
+  margin: 12px 0 16px 0;
   width: 100%;
 }
 
@@ -833,7 +866,7 @@ body {
 
 .tile-layout-vertical .clock-events-section {
   width: 100%;
-  margin-top: 10px;
+  margin-top: clamp(10px, 1.8vw, 18px);
 }
 
 .tile-layout-wide .clock-events-section {
@@ -860,16 +893,16 @@ body {
 .clock-events-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
 }
 
 .clock-event-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 13px 16px;
-  border-radius: 12px;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.08);
   width: 100%;

@@ -25,303 +25,137 @@ export interface PlacedTile extends Geom {
   card: import('./cards').Card;
 }
 
-// Indexed by campaign-tile count (0..4). Index 4 also covers 5+ campaigns
-// (extra campaigns rotate through the slots over time).
+// Indexed by campaign-tile count (0..4).
 //
-// Fixed skeleton: birthday card is tall/portrait (h: 6) so the full list is
-// never cropped.
+// In every template:
+// - template[0] is for Clock (permanent left column, col: 1, w: 3)
+// - template[1] is for Birthday (permanent left column, col: 1, w: 3)
+// - template[2...] tile the remaining area on the right (col: 4, w: 9, h: 6)
+//
+// Clock and Birthday geometries are placeholders here; their height will be
+// dynamically calculated and overridden in Display.tsx based on the contents.
 export const TEMPLATES_BY_COUNT: Geom[][][] = [
-  // 0 campaigns — just the utility tiles; birthday still tall.
+  // 0 campaigns: Clock and Birthday fill the left column
   [
-    // Template 0A: Birthday on left, Clock on right
     [
-      { col: 4, row: 1, w: 9, h: 6 }, // clock
-      { col: 1, row: 1, w: 3, h: 6 }, // birthday (tall)
-    ],
-    // Template 0B: Birthday on right, Clock on left
-    [
-      { col: 1, row: 1, w: 9, h: 6 }, // clock
-      { col: 10, row: 1, w: 3, h: 6 }, // birthday (tall)
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
     ],
   ],
-  // 1 campaign — one big feature, birthday is tall.
+  // 1 campaign: Campaign 0 takes the entire remaining space on the right
   [
-    // Template 1A: 3-column split (Clock left, Birthday right)
     [
-      { col: 1, row: 1, w: 3, h: 6 }, // clock
-      { col: 10, row: 1, w: 3, h: 6 }, // birthday (tall)
-      { col: 4, row: 1, w: 6, h: 6 }, // c0
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 9, h: 6 }, // c0
     ],
-    // Template 1B: Clock laying horizontally at the bottom
+  ],
+  // 2 campaigns: Tiling the 9x6 area into 2 tiles
+  [
+    // Variant A: Horizontal split
     [
-      { col: 4, row: 5, w: 9, h: 2 }, // clock
-      { col: 1, row: 1, w: 3, h: 6 }, // birthday (tall)
-      { col: 4, row: 1, w: 9, h: 4 }, // c0
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 9, h: 3 }, // c0
+      { col: 4, row: 4, w: 9, h: 3 }, // c1
     ],
-    // Template 1C: Clock on right, Campaign 0 on left
+    // Variant B: Horizontal split reversed
     [
-      { col: 9, row: 1, w: 4, h: 6 }, // clock
-      { col: 6, row: 1, w: 3, h: 6 }, // birthday (tall)
-      { col: 1, row: 1, w: 5, h: 6 }, // c0
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 4, w: 9, h: 3 }, // c0
+      { col: 4, row: 1, w: 9, h: 3 }, // c1
     ],
-    // Template 1D: Clock on left, Campaign 0 on right
+    // Variant C: Vertical split
     [
-      { col: 1, row: 1, w: 4, h: 6 }, // clock
-      { col: 5, row: 1, w: 3, h: 6 }, // birthday (tall)
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 5, h: 6 }, // c0
+      { col: 9, row: 1, w: 4, h: 6 }, // c1
+    ],
+    // Variant D: Vertical split reversed
+    [
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
       { col: 8, row: 1, w: 5, h: 6 }, // c0
+      { col: 4, row: 1, w: 4, h: 6 }, // c1
     ],
   ],
-  // 2 campaigns.
+  // 3 campaigns: Tiling the 9x6 area into 3 tiles
   [
-    // Template 2A: Birthday left, Clock right
+    // Variant A: One wide column, two stacked on the right
     [
-      { col: 10, row: 1, w: 3, h: 6 }, // clock
-      { col: 1, row: 1, w: 3, h: 6 }, // birthday (tall)
-      { col: 4, row: 1, w: 6, h: 4 }, // c0
-      { col: 4, row: 5, w: 6, h: 2 }, // c1
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 5, h: 6 }, // c0
+      { col: 9, row: 1, w: 4, h: 3 }, // c1
+      { col: 9, row: 4, w: 4, h: 3 }, // c2
     ],
-    // Template 2B: Clock left, Birthday middle, Campaigns right
+    // Variant B: One full-width top row, two split on bottom
     [
-      { col: 1, row: 1, w: 4, h: 6 }, // clock
-      { col: 5, row: 1, w: 3, h: 6 }, // birthday
-      { col: 8, row: 1, w: 5, h: 3 }, // c0
-      { col: 8, row: 4, w: 5, h: 3 }, // c1
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 9, h: 3 }, // c0
+      { col: 4, row: 4, w: 5, h: 3 }, // c1
+      { col: 9, row: 4, w: 4, h: 3 }, // c2
     ],
-    // Template 2C: Asymmetrical Clock bottom-right
+    // Variant C: One wide column on right, two stacked on left
     [
-      { col: 7, row: 5, w: 6, h: 2 }, // clock
-      { col: 4, row: 1, w: 3, h: 6 }, // birthday
-      { col: 7, row: 1, w: 6, h: 4 }, // c0
-      { col: 1, row: 1, w: 3, h: 6 }, // c1
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 8, row: 1, w: 5, h: 6 }, // c0
+      { col: 4, row: 1, w: 4, h: 3 }, // c1
+      { col: 4, row: 4, w: 4, h: 3 }, // c2
     ],
-    // Template 2D: Birthday middle-right, Clock right
+    // Variant D: One full-width bottom row, two split on top
     [
-      { col: 10, row: 1, w: 3, h: 6 }, // clock
-      { col: 7, row: 1, w: 3, h: 6 }, // birthday
-      { col: 1, row: 1, w: 6, h: 4 }, // c0
-      { col: 1, row: 5, w: 6, h: 2 }, // c1
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 4, w: 9, h: 3 }, // c0
+      { col: 4, row: 1, w: 5, h: 3 }, // c1
+      { col: 9, row: 1, w: 4, h: 3 }, // c2
     ],
   ],
-  // 3 campaigns.
+  // 4 campaigns: Tiling the 9x6 area into 4 tiles
   [
-    // Template 3A: Clock left tower
+    // Variant A: Regular 2x2 grid
     [
-      { col: 1, row: 1, w: 3, h: 6 }, // clock
-      { col: 10, row: 1, w: 3, h: 6 }, // birthday (tall)
-      { col: 4, row: 1, w: 6, h: 4 }, // c0
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 5, h: 3 }, // c0
+      { col: 4, row: 4, w: 5, h: 3 }, // c1
+      { col: 9, row: 1, w: 4, h: 3 }, // c2
+      { col: 9, row: 4, w: 4, h: 3 }, // c3
+    ],
+    // Variant B: Asymmetric 2x2 grid
+    [
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 4, h: 3 }, // c0
+      { col: 4, row: 4, w: 4, h: 3 }, // c1
+      { col: 8, row: 1, w: 5, h: 3 }, // c2
+      { col: 8, row: 4, w: 5, h: 3 }, // c3
+    ],
+    // Variant C: One large on left, three stacked/split
+    [
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 5, h: 4 }, // c0
+      { col: 4, row: 5, w: 5, h: 2 }, // c1
+      { col: 9, row: 1, w: 4, h: 3 }, // c2
+      { col: 9, row: 4, w: 4, h: 3 }, // c3
+    ],
+    // Variant D: One large full-width top row, three split bottom rows (matches user screenshot)
+    [
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 9, h: 4 }, // c0
       { col: 4, row: 5, w: 3, h: 2 }, // c1
       { col: 7, row: 5, w: 3, h: 2 }, // c2
-    ],
-    // Template 3B: Clock right tower
-    [
-      { col: 10, row: 1, w: 3, h: 6 }, // clock
-      { col: 1, row: 1, w: 3, h: 6 }, // birthday
-      { col: 4, row: 1, w: 6, h: 3 }, // c0
-      { col: 4, row: 4, w: 3, h: 3 }, // c1
-      { col: 7, row: 4, w: 3, h: 3 }, // c2
-    ],
-    // Template 3C: Asymmetrical Clock bottom-right
-    [
-      { col: 11, row: 4, w: 2, h: 3 }, // clock
-      { col: 5, row: 1, w: 3, h: 6 }, // birthday
-      { col: 1, row: 1, w: 4, h: 6 }, // c0
-      { col: 8, row: 1, w: 5, h: 3 }, // c1
-      { col: 8, row: 4, w: 3, h: 3 }, // c2
-    ],
-    // Template 3D: Clock right tower, Birthday left tower
-    [
-      { col: 10, row: 1, w: 3, h: 6 }, // clock
-      { col: 1, row: 1, w: 3, h: 6 }, // birthday
-      { col: 4, row: 1, w: 6, h: 2 }, // c0
-      { col: 4, row: 3, w: 3, h: 4 }, // c1
-      { col: 7, row: 3, w: 3, h: 4 }, // c2
-    ],
-  ],
-  // 4 (and 5+) campaigns.
-  [
-    // Template 4A: Clock left tower, Birthday right tower
-    [
-      { col: 1, row: 1, w: 3, h: 6 }, // clock
-      { col: 10, row: 1, w: 3, h: 6 }, // birthday (tall)
-      { col: 4, row: 1, w: 3, h: 4 }, // c0
-      { col: 4, row: 5, w: 3, h: 2 }, // c1
-      { col: 7, row: 1, w: 3, h: 4 }, // c2
-      { col: 7, row: 5, w: 3, h: 2 }, // c3
-    ],
-    // Template 4B: Clock left tower, Birthday right tower, split bottom campaigns
-    [
-      { col: 1, row: 1, w: 3, h: 6 }, // clock
-      { col: 10, row: 1, w: 3, h: 6 }, // birthday
-      { col: 4, row: 1, w: 6, h: 4 }, // c0
-      { col: 4, row: 5, w: 2, h: 2 }, // c1
-      { col: 6, row: 5, w: 2, h: 2 }, // c2
-      { col: 8, row: 5, w: 2, h: 2 }, // c3
-    ],
-    // Template 4C: Clock left tower, Birthday middle-left
-    [
-      { col: 1, row: 1, w: 3, h: 6 }, // clock
-      { col: 4, row: 1, w: 3, h: 6 }, // birthday
-      { col: 7, row: 1, w: 3, h: 4 }, // c0
-      { col: 7, row: 5, w: 3, h: 2 }, // c1
-      { col: 10, row: 1, w: 3, h: 4 }, // c2
       { col: 10, row: 5, w: 3, h: 2 }, // c3
-    ],
-    // Template 4D: Clock bottom-right banner
-    [
-      { col: 9, row: 5, w: 4, h: 2 }, // clock
-      { col: 1, row: 1, w: 3, h: 6 }, // birthday
-      { col: 4, row: 1, w: 5, h: 4 }, // c0
-      { col: 4, row: 5, w: 3, h: 2 }, // c1
-      { col: 7, row: 5, w: 2, h: 2 }, // c2
-      { col: 9, row: 1, w: 4, h: 4 }, // c3
     ],
   ],
 ];
 
-// Alternate template families selected when the birthday card is short (h: 3 or h: 2).
-export const TEMPLATES_BY_COUNT_SHORT_BDAY: Geom[][][] = [
-  // 0 campaigns — just the utility tiles; birthday card is short.
-  [
-    // Template 0S_A: Horizontal split
-    [
-      { col: 1, row: 1, w: 12, h: 3 }, // clock
-      { col: 1, row: 4, w: 12, h: 3 }, // birthday (short)
-    ],
-    // Template 0S_B: Vertical split
-    [
-      { col: 8, row: 1, w: 5, h: 6 }, // clock
-      { col: 1, row: 1, w: 7, h: 6 }, // birthday (short)
-    ],
-    // Template 0S_C: Asymmetrical towers
-    [
-      { col: 1, row: 1, w: 4, h: 6 }, // clock
-      { col: 5, row: 1, w: 8, h: 6 }, // birthday (short)
-    ],
-  ],
-  // 1 campaign — campaign in the middle, birthday is short.
-  [
-    // Template 1S_A: Clock taking top-right stack
-    [
-      { col: 8, row: 1, w: 5, h: 4 }, // clock
-      { col: 8, row: 5, w: 5, h: 2 }, // birthday (short)
-      { col: 1, row: 1, w: 7, h: 6 }, // c0
-    ],
-    // Template 1S_B: Clock left tower, Campaign 0 right stack
-    [
-      { col: 1, row: 1, w: 4, h: 6 }, // clock
-      { col: 5, row: 5, w: 8, h: 2 }, // birthday (short)
-      { col: 5, row: 1, w: 8, h: 4 }, // c0
-    ],
-    // Template 1S_C: Campaign 0 full height left, clock/birthday split right
-    [
-      { col: 9, row: 1, w: 4, h: 3 }, // clock
-      { col: 9, row: 4, w: 4, h: 3 }, // birthday (short)
-      { col: 1, row: 1, w: 8, h: 6 }, // c0
-    ],
-  ],
-  // 2 campaigns — birthday is short.
-  [
-    // Template 2S_A: Clock left tower
-    [
-      { col: 1, row: 1, w: 3, h: 6 }, // clock
-      { col: 10, row: 4, w: 3, h: 3 }, // birthday (short)
-      { col: 4, row: 1, w: 9, h: 3 }, // c0
-      { col: 4, row: 4, w: 6, h: 3 }, // c1
-    ],
-    // Template 2S_B: Clock left tower, split campaign stacks
-    [
-      { col: 1, row: 1, w: 4, h: 6 }, // clock
-      { col: 9, row: 5, w: 4, h: 2 }, // birthday (short)
-      { col: 5, row: 1, w: 8, h: 4 }, // c0
-      { col: 5, row: 5, w: 4, h: 2 }, // c1
-    ],
-    // Template 2S_C: Clock right tower
-    [
-      { col: 9, row: 1, w: 4, h: 6 }, // clock
-      { col: 1, row: 5, w: 4, h: 2 }, // birthday (short)
-      { col: 1, row: 1, w: 8, h: 4 }, // c0
-      { col: 5, row: 5, w: 4, h: 2 }, // c1
-    ],
-    // Template 2S_D: Clock middle-bottom
-    [
-      { col: 4, row: 4, w: 6, h: 3 }, // clock
-      { col: 10, row: 4, w: 3, h: 3 }, // birthday (short)
-      { col: 4, row: 1, w: 9, h: 3 }, // c0
-      { col: 1, row: 1, w: 3, h: 6 }, // c1
-    ],
-  ],
-  // 3 campaigns — birthday is short.
-  [
-    // Template 3S_A: Clock left tower
-    [
-      { col: 1, row: 1, w: 3, h: 6 }, // clock
-      { col: 10, row: 5, w: 3, h: 2 }, // birthday (short)
-      { col: 4, row: 1, w: 6, h: 4 }, // c0
-      { col: 4, row: 5, w: 6, h: 2 }, // c1
-      { col: 10, row: 1, w: 3, h: 4 }, // c2
-    ],
-    // Template 3S_B: Clock left tower, split height columns
-    [
-      { col: 1, row: 1, w: 4, h: 6 }, // clock
-      { col: 10, row: 4, w: 3, h: 3 }, // birthday (short)
-      { col: 5, row: 1, w: 5, h: 3 }, // c0
-      { col: 5, row: 4, w: 5, h: 3 }, // c1
-      { col: 10, row: 1, w: 3, h: 3 }, // c2
-    ],
-    // Template 3S_C: Clock bottom-left banner
-    [
-      { col: 1, row: 5, w: 6, h: 2 }, // clock
-      { col: 7, row: 5, w: 2, h: 2 }, // birthday (short)
-      { col: 1, row: 1, w: 8, h: 4 }, // c0
-      { col: 9, row: 1, w: 4, h: 3 }, // c1
-      { col: 9, row: 4, w: 4, h: 3 }, // c2
-    ],
-    // Template 3S_D: Clock bottom-right banner
-    [
-      { col: 7, row: 5, w: 6, h: 2 }, // clock
-      { col: 5, row: 5, w: 2, h: 2 }, // birthday (short)
-      { col: 5, row: 1, w: 8, h: 4 }, // c0
-      { col: 1, row: 1, w: 4, h: 3 }, // c1
-      { col: 1, row: 4, w: 4, h: 3 }, // c2
-    ],
-  ],
-  // 4 (and 5+) campaigns — birthday is short.
-  [
-    // Template 4S_A: Clock left tower
-    [
-      { col: 1, row: 1, w: 3, h: 6 }, // clock
-      { col: 10, row: 5, w: 3, h: 2 }, // birthday (short)
-      { col: 4, row: 1, w: 6, h: 4 }, // c0
-      { col: 4, row: 5, w: 3, h: 2 }, // c1
-      { col: 7, row: 5, w: 3, h: 2 }, // c2
-      { col: 10, row: 1, w: 3, h: 4 }, // c3
-    ],
-    // Template 4S_B: Clock left tower, split campaigns bottom
-    [
-      { col: 1, row: 1, w: 3, h: 6 }, // clock
-      { col: 10, row: 4, w: 3, h: 3 }, // birthday (short)
-      { col: 4, row: 1, w: 9, h: 3 }, // c0
-      { col: 4, row: 4, w: 2, h: 3 }, // c1
-      { col: 6, row: 4, w: 2, h: 3 }, // c2
-      { col: 8, row: 4, w: 2, h: 3 }, // c3
-    ],
-    // Template 4S_C: Clock bottom-left banner
-    [
-      { col: 1, row: 5, w: 6, h: 2 }, // clock
-      { col: 7, row: 5, w: 2, h: 2 }, // birthday (short)
-      { col: 1, row: 1, w: 8, h: 4 }, // c0
-      { col: 9, row: 1, w: 4, h: 2 }, // c1
-      { col: 9, row: 3, w: 4, h: 2 }, // c2
-      { col: 9, row: 5, w: 4, h: 2 }, // c3
-    ],
-    // Template 4S_D: Clock left stack
-    [
-      { col: 1, row: 1, w: 4, h: 4 }, // clock
-      { col: 1, row: 5, w: 4, h: 2 }, // birthday (short)
-      { col: 5, row: 1, w: 8, h: 4 }, // c0
-      { col: 5, row: 5, w: 3, h: 2 }, // c1
-      { col: 8, row: 5, w: 3, h: 2 }, // c2
-      { col: 11, row: 5, w: 2, h: 2 }, // c3
-    ],
-  ],
-];
+export const TEMPLATES_BY_COUNT_SHORT_BDAY = TEMPLATES_BY_COUNT;
+

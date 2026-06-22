@@ -8,6 +8,7 @@ import type { Card, CampaignUnit } from './cards';
 import { TEMPLATES_BY_COUNT, TEMPLATES_BY_COUNT_SHORT_BDAY } from './layouts';
 import type { PlacedTile } from './layouts';
 import { TileContent } from './Tile';
+import { daysUntil, daysUntilBirthday } from '../lib/util';
 
 // The always-on TV view. Each scene = three utility tiles (brand, clock,
 // birthday) + one tile per DISTINCT campaign, so a campaign never appears twice.
@@ -133,6 +134,41 @@ export function Display() {
   const template = family[tick % family.length];
   const contentCycle = Math.floor(tick / family.length);
 
+  const [h_clock, h_bday] = useMemo(() => {
+    const campaigns = data.campaigns || [];
+    const settings = data.settings;
+    const eventWindowDays = settings.eventWindowDays ?? 60;
+    
+    const upcomingEventsCount = campaigns.filter((c) => {
+      if (c.status !== 'upcoming') return false;
+      const d = daysUntil(c.startDate);
+      return d >= 0 && d <= eventWindowDays;
+    }).length;
+
+    const birthdays = data.birthdays || [];
+    const windowDays = settings.birthdayWindowDays;
+    
+    const upcomingBirthdaysCount = birthdays.filter((b) => {
+      const d = daysUntilBirthday(b.date);
+      return d <= windowDays;
+    }).length;
+
+    if (upcomingBirthdaysCount === 0) {
+      return [4, 2];
+    }
+    if (upcomingEventsCount === 0) {
+      return [2, 4];
+    }
+    // Both have items. A long birthday list needs the extra row — give the clock
+    // h:2 (its content is compact) and the birthday h:4 so the card sits right
+    // under the events with room for more names. Short lists keep the even 3/3
+    // split. Either way the birthday tile auto-fits / cycles its own contents.
+    if (upcomingBirthdaysCount > 4) {
+      return [2, 4];
+    }
+    return [3, 3];
+  }, [data.campaigns, data.birthdays, data.settings]);
+
   const tiles = useMemo<PlacedTile[]>(() => {
     const pinnedUnits = units.filter((u) => u.showPermanently);
     const unpinnedUnits = units.filter((u) => !u.showPermanently);
@@ -141,12 +177,26 @@ export function Display() {
     const chosen = [...shuffledPinned, ...shuffledUnpinned].slice(0, count);
 
     const utilCards = [utils.clock, utils.birthday];
-    return template.map((geom, i) => ({
-      ...geom,
-      role: i,
-      card: i < 2 ? utilCards[i] : pickVariant(chosen[i - 2], contentCycle + seed, i - 2),
-    }));
-  }, [template, units, utils, count, contentCycle, seed]);
+    return template.map((geom, i) => {
+      let finalGeom = { ...geom };
+      if (i === 0) {
+        finalGeom.col = 1;
+        finalGeom.row = 1;
+        finalGeom.w = 3;
+        finalGeom.h = h_clock;
+      } else if (i === 1) {
+        finalGeom.col = 1;
+        finalGeom.row = 1 + h_clock;
+        finalGeom.w = 3;
+        finalGeom.h = h_bday;
+      }
+      return {
+        ...finalGeom,
+        role: i,
+        card: i < 2 ? utilCards[i] : pickVariant(chosen[i - 2], contentCycle + seed, i - 2),
+      };
+    });
+  }, [template, units, utils, count, contentCycle, seed, h_clock, h_bday]);
 
   // Rotate ticker message alongside the layout.
   const messages = data.settings.tickerMessages;
@@ -160,6 +210,7 @@ export function Display() {
           const isVideo = tile.card.kind === 'video';
           // The clock has no card chrome — it reads as time on the red background.
           const isClock = tile.card.kind === 'clock';
+          const isBirthday = tile.card.kind === 'birthday';
 
           // Determine vertical alignment based on midpoint row position
           const midRow = tile.row + tile.h / 2;
@@ -173,7 +224,7 @@ export function Display() {
               key={tile.role}
               layout
               transition={{ type: 'spring', stiffness: 200, damping: 26, mass: 0.9 }}
-              className={`tile ${isClock ? 'tile-plain' : tile.card.tone} ${isImage ? 'tile-image' : ''} ${isVideo ? 'tile-video' : ''} ${tile.h <= 3 ? 'tile-short' : ''} ${alignClass}`}
+              className={`tile ${isClock ? 'tile-plain' : isBirthday ? 'tile-birthday' : tile.card.tone} ${isImage ? 'tile-image' : ''} ${isVideo ? 'tile-video' : ''} ${tile.h <= 3 ? 'tile-short' : ''} ${alignClass}`}
               style={{
                 gridColumn: `${tile.col} / span ${tile.w}`,
                 gridRow: `${tile.row} / span ${tile.h}`,

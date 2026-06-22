@@ -199,6 +199,30 @@ function SettingsSection() {
           </div>
           <div className="row">
             <div className="field">
+              <label className="checkbox-label" style={{ opacity: 0.6 }}>
+                <input
+                  type="checkbox"
+                  checked={true}
+                  disabled={true}
+                  style={{ cursor: 'not-allowed' }}
+                />
+                <span>Show Birthdays permanently on dashboard</span>
+              </label>
+            </div>
+            <div className="field">
+              <label className="checkbox-label" style={{ opacity: 0.6 }}>
+                <input
+                  type="checkbox"
+                  checked={true}
+                  disabled={true}
+                  style={{ cursor: 'not-allowed' }}
+                />
+                <span>Show Clock permanently on dashboard</span>
+              </label>
+            </div>
+          </div>
+          <div className="row">
+            <div className="field">
               <label>Show seconds on clock</label>
               <select
                 value={draft.showSeconds ? 'yes' : 'no'}

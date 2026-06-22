@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Card } from './cards';
 import { useData } from '../store/useData';
@@ -107,22 +107,20 @@ function ClockTile({ w = 3, h = 6 }: { w?: number; h?: number }) {
       <div className="clock-time-group">
         <div className="clock-logo-container">
           <img src={rmitLogo} className="clock-logo" alt="RMIT Logo" />
+          <span className="clock-tagline">Ready for<br />what's next</span>
         </div>
+        <hr className="clock-divider" />
         <div className="clock-dual">
-          <div className="clock-timezone">
-            <div className="timezone-header">
-              <span className="badge-tz">Vietnam</span>
-              <span className="date-tz">{dateVN}</span>
-            </div>
-            <div className="time-tz">{timeVN}</div>
+          <div className="time-tz">{timeVN}</div>
+          <div className="timezone-info-right">
+            <span className="badge-tz">Vietnam</span>
+            <span className="date-tz">{dateVN}</span>
           </div>
           
-          <div className="clock-timezone">
-            <div className="timezone-header">
-              <span className="badge-tz">Melbourne</span>
-              <span className="date-tz">{dateMelb}</span>
-            </div>
-            <div className="time-tz">{timeMelb}</div>
+          <div className="time-tz">{timeMelb}</div>
+          <div className="timezone-info-right">
+            <span className="badge-tz">Melbourne</span>
+            <span className="date-tz">{dateMelb}</span>
           </div>
         </div>
       </div>
@@ -286,36 +284,159 @@ function VideoTile({ card }: { card: Card }) {
   );
 }
 
+const BDAY_MIN_SCALE = 0.6;
+
 function BirthdayTile({ card }: { card: Card }) {
   const people = card.people ?? [];
+
+  const todayPeople = useMemo(() => people.filter((p) => p.days === 0), [people]);
+  const upcomingPeople = useMemo(() => people.filter((p) => p.days > 0), [people]);
+
+  // A stable signature of the current roster — changes only when the actual
+  // birthdays change, so we can reset the fit without firing on every render.
+  const peopleKey = useMemo(
+    () => people.map((p) => `${p.name}:${p.days}`).join('|'),
+    [people],
+  );
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const passRef = useRef(0);
+  const settledRef = useRef(false);
+
+  // Auto-fit: shrink font/avatar (scale) so the whole list fits the card. If it
+  // still overflows at the minimum scale, drop upcoming rows one at a time and
+  // cycle through them (today's birthdays stay pinned and are never dropped).
+  const [scale, setScale] = useState(1);
+  const [visibleUpcoming, setVisibleUpcoming] = useState(upcomingPeople.length);
+  const [resizeToken, setResizeToken] = useState(0);
+
+  // Reset the fit whenever the roster or the available size changes.
+  useLayoutEffect(() => {
+    passRef.current = 0;
+    settledRef.current = false;
+    setScale(1);
+    setVisibleUpcoming(upcomingPeople.length);
+  }, [peopleKey, resizeToken, upcomingPeople.length]);
+
+  // A template/layout change resizes the tile; re-run the fit when it does.
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => setResizeToken((t) => t + 1));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const isScrolling = visibleUpcoming < upcomingPeople.length;
+
+  // Cycle the upcoming window only when we had to drop rows to fit.
+  const [scrollIdx, setScrollIdx] = useState(0);
+  useEffect(() => {
+    setScrollIdx(0);
+  }, [peopleKey, visibleUpcoming]);
+  useEffect(() => {
+    if (!isScrolling) return;
+    const t = setInterval(() => {
+      setScrollIdx((i) => (i + 1) % upcomingPeople.length);
+    }, 4000);
+    return () => clearInterval(t);
+  }, [isScrolling, upcomingPeople.length]);
+
+  const shownUpcoming = useMemo(() => {
+    if (!isScrolling) return upcomingPeople;
+    const rotated = [...upcomingPeople.slice(scrollIdx), ...upcomingPeople.slice(0, scrollIdx)];
+    return rotated.slice(0, Math.max(1, visibleUpcoming));
+  }, [isScrolling, upcomingPeople, scrollIdx, visibleUpcoming]);
+
+  // After each render, measure overflow and take ONE corrective step: first
+  // shrink the scale, then (once at the minimum) drop an upcoming row to enable
+  // cycling. Monotonic and capped, so it always converges before paint.
+  useLayoutEffect(() => {
+    const el = listRef.current;
+    // Once we've fit, stop measuring so row enter/exit animations can't nudge
+    // the window smaller. The latch is cleared by the reset effect above.
+    if (!el || settledRef.current || passRef.current > 60) return;
+    const overflow = el.scrollHeight - el.clientHeight;
+    if (overflow <= 1) {
+      settledRef.current = true;
+      return; // fits — done
+    }
+    passRef.current += 1;
+    if (scale > BDAY_MIN_SCALE + 0.001) {
+      const target = (scale * el.clientHeight) / el.scrollHeight;
+      setScale((s) => Math.max(BDAY_MIN_SCALE, Math.min(target, s - 0.04)));
+    } else if (visibleUpcoming > 1) {
+      setVisibleUpcoming((v) => v - 1);
+    }
+  });
+
   return (
-    <div className="birthday" style={{ height: '100%' }}>
+    <div className="birthday">
       <div className="bday-head">
         <span className="cake">🎂</span> Birthdays
       </div>
-      <div className="bday-list">
+      <div
+        className="bday-list"
+        ref={listRef}
+        style={{ '--bday-scale': scale } as React.CSSProperties}
+      >
         {people.length === 0 && <div className="bday-meta">No birthdays in this window</div>}
-        {people.map((p) => (
-          <div className={`bday-row ${p.days === 0 ? 'today' : ''}`} key={p.name}>
+
+        {/* Pinned Today Birthdays */}
+        {todayPeople.map((p) => (
+          <div className="bday-row today" key={p.name}>
             <div className="bday-row-avatar-wrapper">
               {p.photoUrl ? (
                 <img src={p.photoUrl} alt={p.name} />
               ) : (
-                <div className="bday-avatar-empty">{p.days === 0 ? '🎂' : '👤'}</div>
+                <div className="bday-avatar-empty">🎂</div>
               )}
             </div>
             <div>
               <div className="bday-name">
                 {p.name}
-                {p.days === 0 && <span className="bday-row-today-icon">🎉</span>}
+                <span className="bday-row-today-icon">🎉</span>
               </div>
               <div className="bday-meta">
                 {p.team ? `${p.team} · ` : ''}{p.dateLabel}
               </div>
             </div>
-            <span className={`bday-when ${p.days === 0 ? 'today' : ''}`}>{birthdayLabel(p.days)}</span>
+            <span className="bday-when today">Today</span>
           </div>
         ))}
+
+        {/* Scrolling/Cycling Upcoming Birthdays */}
+        {shownUpcoming.length > 0 && (
+          <div className="bday-upcoming-container">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {shownUpcoming.map((p) => (
+                <motion.div
+                  className="bday-row"
+                  key={p.name}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+                >
+                  <div className="bday-row-avatar-wrapper">
+                    {p.photoUrl ? (
+                      <img src={p.photoUrl} alt={p.name} />
+                    ) : (
+                      <div className="bday-avatar-empty">👤</div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="bday-name">{p.name}</div>
+                    <div className="bday-meta">
+                      {p.team ? `${p.team} · ` : ''}{p.dateLabel}
+                    </div>
+                  </div>
+                  <span className="bday-when">{birthdayLabel(p.days)}</span>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </div>
   );
