@@ -113,13 +113,13 @@ function ClockTile({ w = 3, h = 6 }: { w?: number; h?: number }) {
         <div className="clock-dual">
           <div className="time-tz">{timeVN}</div>
           <div className="timezone-info-right">
-            <span className="badge-tz">Vietnam</span>
+            <span className="badge-tz">VN</span>
             <span className="date-tz">{dateVN}</span>
           </div>
           
           <div className="time-tz">{timeMelb}</div>
           <div className="timezone-info-right">
-            <span className="badge-tz">Melbourne</span>
+            <span className="badge-tz">Mel</span>
             <span className="date-tz">{dateMelb}</span>
           </div>
         </div>

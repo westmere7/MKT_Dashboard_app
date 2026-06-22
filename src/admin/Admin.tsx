@@ -102,6 +102,7 @@ export function Admin() {
         </div>
 
         <SettingsSection />
+        <BirthdaysSection />
 
         <SectionHeader title="Campaigns" count={data.campaigns.length} onAdd={addCampaign} addLabel="+ Add campaign" />
         <div className="item-list">
@@ -110,8 +111,6 @@ export function Admin() {
             <CampaignRow key={c.id} campaign={c} open={openId === c.id} onToggle={() => toggle(c.id)} />
           ))}
         </div>
-
-        <BirthdaysSection />
 
         <div className="section-head">
           <h2>Misc</h2>
@@ -597,38 +596,50 @@ function TableImageInput({ value, onChange }: { value: string; onChange: (url: s
     }
   };
 
+  const handleClick = () => {
+    if (cloudinaryEnabled) {
+      fileRef.current?.click();
+    } else {
+      const url = prompt('Enter photo URL:', value);
+      if (url !== null) {
+        onChange(url);
+      }
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <div 
+      className="avatar-upload-container" 
+      onClick={handleClick}
+      title={cloudinaryEnabled ? 'Click to upload new photo' : 'Click to change photo URL'}
+    >
       {value ? (
-        <img style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--figma-border)', flexShrink: 0 }} src={value} alt="" />
+        <img className="avatar-preview" src={value} alt="" />
       ) : (
-        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--figma-border)', display: 'grid', placeItems: 'center', fontSize: '0.9rem', flexShrink: 0 }}>🎂</div>
+        <div className="avatar-placeholder">🎂</div>
       )}
-      <input
-        style={{ flex: 1, minWidth: '100px' }}
-        placeholder="Image URL"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      
+      {busy ? (
+        <div className="avatar-loading">
+          <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '1.5px' }}></span>
+        </div>
+      ) : (
+        <div className="avatar-overlay">
+          <svg className="theme-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+            <circle cx="12" cy="13" r="3"/>
+          </svg>
+        </div>
+      )}
+
       {cloudinaryEnabled && (
-        <>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => onPick(e.target.files?.[0])}
-          />
-          <button
-            type="button"
-            className="btn ghost small"
-            style={{ padding: '4px 8px', fontSize: '0.75rem', flexShrink: 0 }}
-            disabled={busy}
-            onClick={() => fileRef.current?.click()}
-          >
-            {busy ? '…' : '⬆'}
-          </button>
-        </>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => onPick(e.target.files?.[0])}
+        />
       )}
     </div>
   );
@@ -703,17 +714,17 @@ function BirthdaysSection() {
             <table className="birthday-table">
               <thead>
                 <tr>
-                  <th style={{ width: '40%' }}>Photo</th>
-                  <th style={{ width: '25%' }}>Name</th>
-                  <th style={{ width: '15%' }}>Birthday</th>
-                  <th style={{ width: '15%' }}>Team</th>
+                  <th style={{ width: '10%', textAlign: 'center' }}>Photo</th>
+                  <th style={{ width: '35%' }}>Name</th>
+                  <th style={{ width: '25%' }}>Birthday</th>
+                  <th style={{ width: '25%' }}>Team</th>
                   <th style={{ width: '5%', textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {draft.map((b) => (
                   <tr key={b.id}>
-                    <td>
+                    <td style={{ textAlign: 'center' }}>
                       <TableImageInput value={b.photoUrl ?? ''} onChange={(url) => setRow(b.id, { photoUrl: url })} />
                     </td>
                     <td>

@@ -79,7 +79,7 @@ export function ImageGalleryInput({
             onClick={() => fileRef.current?.click()}
             title="Upload image(s)"
           >
-            {busy ? '…' : '＋'}
+            {busy ? <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '1.5px' }}></span> : '＋'}
           </button>
         )}
         <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => onPick(e.target.files)} />

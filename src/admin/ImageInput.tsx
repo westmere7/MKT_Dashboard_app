@@ -67,7 +67,14 @@ export function ImageInput({
                   disabled={busy}
                   onClick={() => fileRef.current?.click()}
                 >
-                  {busy ? `Uploading (${progress ?? 0}%)…` : '⬆ Upload image'}
+                  {busy ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="spinner" style={{ width: '12px', height: '12px', borderWidth: '1.5px' }}></span>
+                      <span>Uploading ({progress ?? 0}%)…</span>
+                    </span>
+                  ) : (
+                    '⬆ Upload image'
+                  )}
                 </button>
                 {value && (
                   <button type="button" className="btn ghost small" onClick={() => onChange('')}>
