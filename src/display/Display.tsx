@@ -15,7 +15,7 @@ import { daysUntil, daysUntilBirthday } from '../lib/util';
 // The template family is chosen by how many distinct campaigns there are, so
 // fewer campaigns means fewer, bigger tiles. Tiles morph between templates.
 
-const MAX_CAMPAIGN_TILES = 4;
+const MAX_SUPPORTED_TILES = 5;
 
 function hashId(s: string): number {
   let h = 0;
@@ -124,10 +124,9 @@ export function Display() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Number of campaign tiles = distinct campaigns, capped. The family for that
-  // count gives fewer/bigger tiles when there are fewer campaigns. `tick` folds
-  // in the random seed so the starting template/content differs each load.
-  const count = Math.min(units.length, MAX_CAMPAIGN_TILES);
+  const minCards = data.settings.minCards ?? 1;
+  const maxCards = data.settings.maxCards ?? 5;
+  const count = Math.min(units.length, Math.max(minCards, Math.min(maxCards, MAX_SUPPORTED_TILES)));
   const isBirthdayShort = utils.birthday.people ? utils.birthday.people.length <= 5 : true;
   const family = isBirthdayShort ? TEMPLATES_BY_COUNT_SHORT_BDAY[count] : TEMPLATES_BY_COUNT[count];
   const tick = sceneIdx + seed;

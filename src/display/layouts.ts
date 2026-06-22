@@ -155,6 +155,39 @@ export const TEMPLATES_BY_COUNT: Geom[][][] = [
       { col: 10, row: 5, w: 3, h: 2 }, // c3
     ],
   ],
+  // 5 campaigns: Tiling the 9x6 area into 5 tiles
+  [
+    // Variant A: 2 tiles top, 3 tiles bottom
+    [
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 4, h: 3 }, // c0
+      { col: 8, row: 1, w: 5, h: 3 }, // c1
+      { col: 4, row: 4, w: 3, h: 3 }, // c2
+      { col: 7, row: 4, w: 3, h: 3 }, // c3
+      { col: 10, row: 4, w: 3, h: 3 }, // c4
+    ],
+    // Variant B: 3 tiles top, 2 tiles bottom
+    [
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 3, h: 3 }, // c0
+      { col: 7, row: 1, w: 3, h: 3 }, // c1
+      { col: 10, row: 1, w: 3, h: 3 }, // c2
+      { col: 4, row: 4, w: 4, h: 3 }, // c3
+      { col: 8, row: 4, w: 5, h: 3 }, // c4
+    ],
+    // Variant C: 1 large column on left, 4 stacked/split on right
+    [
+      { col: 1, row: 1, w: 3, h: 3 }, // clock
+      { col: 1, row: 4, w: 3, h: 3 }, // birthday
+      { col: 4, row: 1, w: 4, h: 6 }, // c0
+      { col: 8, row: 1, w: 2, h: 3 }, // c1
+      { col: 8, row: 4, w: 2, h: 3 }, // c2
+      { col: 10, row: 1, w: 3, h: 3 }, // c3
+      { col: 10, row: 4, w: 3, h: 3 }, // c4
+    ],
+  ],
 ];
 
 export const TEMPLATES_BY_COUNT_SHORT_BDAY = TEMPLATES_BY_COUNT;

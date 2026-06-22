@@ -116,6 +116,8 @@ export interface Settings {
   backgroundColor?: string;
   navyColor?: string;
   whiteColor?: string;
+  minCards?: number;
+  maxCards?: number;
 }
 
 export interface DashboardData {

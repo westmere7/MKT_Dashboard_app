@@ -11,6 +11,8 @@ export const demoData: DashboardData = {
     birthdayWindowDays: 30,
     eventWindowDays: 60,
     showSeconds: false,
+    minCards: 1,
+    maxCards: 5,
     tickerMessages: [
       'Welcome to the RMIT Marketing live wall',
       'Open Day registrations now live',

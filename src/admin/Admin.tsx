@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useData, firebaseEnabled } from '../store/useData';
 import type { Birthday, Campaign, Settings, SocialStat } from '../types';
 import { campaignImages, youtubeThumb } from '../lib/util';
 import { ImageInput } from './ImageInput';
 import { ImageGalleryInput } from './ImageGalleryInput';
+import { cloudinaryEnabled, uploadImage } from '../lib/cloudinary';
 import './admin.css';
 
 const newId = () =>
@@ -30,8 +31,15 @@ function normalizeCampaign(c: Campaign): Campaign {
 // shared store / live wall) or Discard (reverts to the last saved values).
 
 export function Admin() {
-  const { data, resetToDemo, saveCampaign, saveBirthday } = useData();
+  const { data, resetToDemo, saveCampaign } = useData();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [adminTheme, setAdminTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('admin-theme') as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('admin-theme', adminTheme);
+  }, [adminTheme]);
 
   const toggle = (id: string) => setOpenId((cur) => (cur === id ? null : id));
 
@@ -51,18 +59,30 @@ export function Admin() {
     setOpenId(id);
   };
 
-  const addBirthday = () => {
-    const id = newId();
-    saveBirthday({ id, name: 'New person', date: '01-01', team: '', photoUrl: '' });
-    setOpenId(id);
-  };
-
   return (
-    <div className="admin">
+    <div className={`admin ${adminTheme === 'dark' ? 'dark' : ''}`}>
       <div className="admin-inner">
         <div className="admin-header">
           <h1>Dashboard config</h1>
           <div className="grow" />
+          <button
+            className="theme-toggle-btn"
+            onClick={() => setAdminTheme((t) => (t === 'light' ? 'dark' : 'light'))}
+            aria-label="Toggle dark/light theme"
+            title={adminTheme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+          >
+            {adminTheme === 'light' ? (
+              <svg className="theme-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+              </svg>
+            ) : (
+              <svg className="theme-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="4"/>
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+              </svg>
+            )}
+            <span>{adminTheme === 'light' ? 'Dark' : 'Light'}</span>
+          </button>
           <Link className="link" to="/">
             ↗ Open dashboard
           </Link>
@@ -91,13 +111,7 @@ export function Admin() {
           ))}
         </div>
 
-        <SectionHeader title="Birthdays" count={data.birthdays.length} onAdd={addBirthday} addLabel="+ Add birthday" />
-        <div className="item-list">
-          {data.birthdays.length === 0 && <div className="empty-hint">No birthdays yet.</div>}
-          {data.birthdays.map((b) => (
-            <BirthdayRow key={b.id} birthday={b} open={openId === b.id} onToggle={() => toggle(b.id)} />
-          ))}
-        </div>
+        <BirthdaysSection />
 
         <div className="section-head">
           <h2>Misc</h2>
@@ -153,7 +167,7 @@ function SettingsSection() {
         <div className="item-main">
           <div className="item-title">Display settings {dirty && <span className="dirty-dot" title="Unsaved" />}</div>
           <div className="item-meta">
-            {draft.brandName} · rotate {draft.rotationSeconds}s · birthdays {draft.birthdayWindowDays}d · events {draft.eventWindowDays ?? 60}d ·{' '}
+            {draft.brandName} · rotate {draft.rotationSeconds}s · cards {draft.minCards ?? 1}-{draft.maxCards ?? 5} · birthdays {draft.birthdayWindowDays}d · events {draft.eventWindowDays ?? 60}d ·{' '}
             {draft.tickerMessages.length} ticker msgs
           </div>
         </div>
@@ -194,6 +208,28 @@ function SettingsSection() {
                 min={1}
                 value={draft.eventWindowDays ?? 60}
                 onChange={(e) => set({ eventWindowDays: Number(e.target.value) })}
+              />
+            </div>
+          </div>
+          <div className="row">
+            <div className="field">
+              <label>Min campaign cards shown</label>
+              <input
+                type="number"
+                min={1}
+                max={5}
+                value={draft.minCards !== undefined ? draft.minCards : 1}
+                onChange={(e) => set({ minCards: Number(e.target.value) })}
+              />
+            </div>
+            <div className="field">
+              <label>Max campaign cards shown</label>
+              <input
+                type="number"
+                min={1}
+                max={5}
+                value={draft.maxCards !== undefined ? draft.maxCards : 5}
+                onChange={(e) => set({ maxCards: Number(e.target.value) })}
               />
             </div>
           </div>
@@ -241,7 +277,7 @@ function SettingsSection() {
             />
           </div>
 
-          <div className="section-divider" style={{ margin: '18px 0 12px', fontWeight: 700, fontSize: '0.9rem', borderBottom: '1px solid #ececf2', paddingBottom: '6px', opacity: 0.8 }}>
+          <div className="section-divider" style={{ margin: '18px 0 12px', fontWeight: 700, fontSize: '0.9rem', paddingBottom: '6px', opacity: 0.8 }}>
             Theme & Appearance
           </div>
           <div className="row">
@@ -261,7 +297,7 @@ function SettingsSection() {
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="color"
-                  style={{ width: '42px', height: '42px', padding: '0', border: '1px solid #d6d6de', borderRadius: '8px', cursor: 'pointer', flex: 'none' }}
+                  style={{ width: '42px', height: '42px', padding: '0', border: '1px solid var(--figma-input-border)', borderRadius: 'var(--figma-radius)', cursor: 'pointer', flex: 'none' }}
                   value={draft.backgroundColor || '#e61e2a'}
                   onChange={(e) => set({ backgroundColor: e.target.value })}
                 />
@@ -281,7 +317,7 @@ function SettingsSection() {
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="color"
-                  style={{ width: '42px', height: '42px', padding: '0', border: '1px solid #d6d6de', borderRadius: '8px', cursor: 'pointer', flex: 'none' }}
+                  style={{ width: '42px', height: '42px', padding: '0', border: '1px solid var(--figma-input-border)', borderRadius: 'var(--figma-radius)', cursor: 'pointer', flex: 'none' }}
                   value={draft.navyColor || '#000054'}
                   onChange={(e) => set({ navyColor: e.target.value })}
                 />
@@ -299,7 +335,7 @@ function SettingsSection() {
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="color"
-                  style={{ width: '42px', height: '42px', padding: '0', border: '1px solid #d6d6de', borderRadius: '8px', cursor: 'pointer', flex: 'none' }}
+                  style={{ width: '42px', height: '42px', padding: '0', border: '1px solid var(--figma-input-border)', borderRadius: 'var(--figma-radius)', cursor: 'pointer', flex: 'none' }}
                   value={draft.whiteColor || '#ffffff'}
                   onChange={(e) => set({ whiteColor: e.target.value })}
                 />
@@ -542,29 +578,118 @@ function CampaignRow({ campaign, open, onToggle }: { campaign: Campaign; open: b
   );
 }
 
-/* ---------------- Birthday ---------------- */
+/* ---------------- Birthday Table ---------------- */
 
-function BirthdayRow({ birthday, open, onToggle }: { birthday: Birthday; open: boolean; onToggle: () => void }) {
-  const { saveBirthday, deleteBirthday } = useData();
-  const [draft, setDraft] = useState<Birthday>(birthday);
-  const set = (patch: Partial<Birthday>) => setDraft((d) => ({ ...d, ...patch }));
-  const dirty = isDirty(draft, birthday);
+function TableImageInput({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  const onPick = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const url = await uploadImage(file);
+      onChange(url);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <div className={`panel ${open ? 'is-open' : ''}`}>
-      <button className="item-row" onClick={onToggle}>
-        {draft.photoUrl ? (
-          <img className="item-thumb round" src={draft.photoUrl} alt="" />
-        ) : (
-          <div className="item-thumb round empty">🎂</div>
-        )}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {value ? (
+        <img style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--figma-border)', flexShrink: 0 }} src={value} alt="" />
+      ) : (
+        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--figma-border)', display: 'grid', placeItems: 'center', fontSize: '0.9rem', flexShrink: 0 }}>🎂</div>
+      )}
+      <input
+        style={{ flex: 1, minWidth: '100px' }}
+        placeholder="Image URL"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {cloudinaryEnabled && (
+        <>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => onPick(e.target.files?.[0])}
+          />
+          <button
+            type="button"
+            className="btn ghost small"
+            style={{ padding: '4px 8px', fontSize: '0.75rem', flexShrink: 0 }}
+            disabled={busy}
+            onClick={() => fileRef.current?.click()}
+          >
+            {busy ? '…' : '⬆'}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function BirthdaysSection() {
+  const { data, saveBirthday, deleteBirthday } = useData();
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<Birthday[]>(data.birthdays);
+
+  useEffect(() => {
+    setDraft(data.birthdays);
+  }, [data.birthdays]);
+
+  const setRow = (id: string, patch: Partial<Birthday>) => {
+    setDraft((current) => current.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+  };
+
+  const addRow = () => {
+    const id = newId();
+    setDraft((current) => [...current, { id, name: '', date: '01-01', team: '', photoUrl: '' }]);
+  };
+
+  const deleteRow = (id: string) => {
+    setDraft((current) => current.filter((b) => b.id !== id));
+  };
+
+  const dirty = isDirty(draft, data.birthdays);
+
+  const handleSave = () => {
+    // 1. Delete removed birthdays
+    const draftIds = new Set(draft.map((b) => b.id));
+    data.birthdays.forEach((b) => {
+      if (!draftIds.has(b.id)) {
+        deleteBirthday(b.id);
+      }
+    });
+
+    // 2. Save new or updated birthdays
+    draft.forEach((draftItem) => {
+      const original = data.birthdays.find((b) => b.id === draftItem.id);
+      if (!original || isDirty(draftItem, original)) {
+        saveBirthday(draftItem);
+      }
+    });
+  };
+
+  const handleDiscard = () => {
+    setDraft(data.birthdays);
+  };
+
+  return (
+    <div className="panel">
+      <button className="item-row" onClick={() => setOpen((o) => !o)}>
+        <span className="item-icon">🎂</span>
         <div className="item-main">
           <div className="item-title">
-            {draft.name || 'Unnamed'} {dirty && <span className="dirty-dot" title="Unsaved" />}
+            Birthdays {dirty && <span className="dirty-dot" title="Unsaved" />}
           </div>
           <div className="item-meta">
-            <span>{draft.date}</span>
-            {draft.team && <span>· {draft.team}</span>}
+            {draft.length} people registered
           </div>
         </div>
         <span className={`chevron ${open ? 'up' : ''}`}>▾</span>
@@ -572,47 +697,100 @@ function BirthdayRow({ birthday, open, onToggle }: { birthday: Birthday; open: b
 
       {open && (
         <div className="item-detail">
-          <div className="row-3">
-            <div className="field">
-              <label>Name</label>
-              <input value={draft.name} onChange={(e) => set({ name: e.target.value })} />
-            </div>
-            <div className="field">
-              <label>Birthday</label>
-              <input
-                type="date"
-                value={(() => {
-                  if (!draft.date) return '';
-                  const parts = draft.date.split('-');
-                  if (parts.length !== 2) return '';
-                  const [mm, dd] = parts;
-                  const dummyYear = new Date().getFullYear();
-                  const pad = (s: string) => s.padStart(2, '0');
-                  return `${dummyYear}-${pad(mm)}-${pad(dd)}`;
-                })()}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val) {
-                    const parts = val.split('-');
-                    if (parts.length === 3) {
-                      set({ date: `${parts[1]}-${parts[2]}` });
-                    }
-                  }
-                }}
-              />
-            </div>
-            <div className="field">
-              <label>Team</label>
-              <input value={draft.team ?? ''} onChange={(e) => set({ team: e.target.value })} />
-            </div>
+          {draft.length === 0 ? (
+            <div className="empty-hint">No birthdays yet. Click "+ Add Birthday" to start.</div>
+          ) : (
+            <table className="birthday-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '40%' }}>Photo</th>
+                  <th style={{ width: '25%' }}>Name</th>
+                  <th style={{ width: '15%' }}>Birthday</th>
+                  <th style={{ width: '15%' }}>Team</th>
+                  <th style={{ width: '5%', textAlign: 'center' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {draft.map((b) => (
+                  <tr key={b.id}>
+                    <td>
+                      <TableImageInput value={b.photoUrl ?? ''} onChange={(url) => setRow(b.id, { photoUrl: url })} />
+                    </td>
+                    <td>
+                      <input
+                        placeholder="Name"
+                        value={b.name}
+                        onChange={(e) => setRow(b.id, { name: e.target.value })}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="date"
+                        value={(() => {
+                          if (!b.date) return '';
+                          const parts = b.date.split('-');
+                          if (parts.length !== 2) return '';
+                          const [mm, dd] = parts;
+                          const dummyYear = new Date().getFullYear();
+                          const pad = (s: string) => s.padStart(2, '0');
+                          return `${dummyYear}-${pad(mm)}-${pad(dd)}`;
+                        })()}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                            const parts = val.split('-');
+                            if (parts.length === 3) {
+                              setRow(b.id, { date: `${parts[1]}-${parts[2]}` });
+                            }
+                          }
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        placeholder="Team"
+                        value={b.team ?? ''}
+                        onChange={(e) => setRow(b.id, { team: e.target.value })}
+                      />
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <button
+                        type="button"
+                        className="btn red small"
+                        style={{ padding: '6px 10px', fontSize: '0.8rem' }}
+                        onClick={() => deleteRow(b.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <div style={{ marginTop: '16px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button type="button" className="btn small" onClick={addRow}>
+              + Add Birthday
+            </button>
+            <div style={{ flexGrow: 1 }} />
+            <button
+              type="button"
+              className="btn small"
+              disabled={!dirty}
+              onClick={handleSave}
+            >
+              Save Changes
+            </button>
+            <button
+              type="button"
+              className="btn ghost small"
+              disabled={!dirty}
+              onClick={handleDiscard}
+            >
+              Discard
+            </button>
           </div>
-          <ImageInput label="Photo" value={draft.photoUrl ?? ''} onChange={(url) => set({ photoUrl: url })} />
-          <EditorActions
-            dirty={dirty}
-            onSave={() => saveBirthday(draft)}
-            onDiscard={() => setDraft(birthday)}
-            onDelete={() => deleteBirthday(birthday.id)}
-          />
         </div>
       )}
     </div>
