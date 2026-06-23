@@ -74,23 +74,24 @@ export function buildCampaignUnits(data: DashboardData): CampaignUnit[] {
     const variants: Card[] = [];
 
     // Primary card — video wins, then images, then tagline.
-    if (c.youtubeUrl && c.youtubeUrl.trim()) {
+    const hasVideo = c.youtubeUrl && c.youtubeUrl.trim();
+    if (hasVideo) {
       variants.push({ id: `${c.id}-video`, kind: 'video', tone: 'navy', title: c.title, url: c.youtubeUrl });
-    } else {
-      const imgs = campaignImages(c);
-      if (imgs.length) {
-        variants.push({
-          id: `${c.id}-img`,
-          kind: 'hero',
-          tone: 'navy',
-          title: c.title,
-          status: c.status,
-          imageUrl: imgs[0],
-          images: imgs,
-          intervalMs,
-          dateLabel: formatEventDate(c.startDate),
-        });
-      }
+    }
+
+    const imgs = campaignImages(c);
+    if (imgs.length) {
+      variants.push({
+        id: `${c.id}-img`,
+        kind: 'hero',
+        tone: 'navy',
+        title: c.title,
+        status: c.status,
+        imageUrl: imgs[0],
+        images: imgs,
+        intervalMs,
+        dateLabel: formatEventDate(c.startDate),
+      });
     }
 
     // Secondary cards — stats and an upcoming-event countdown.
