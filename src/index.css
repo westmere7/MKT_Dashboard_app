@@ -144,12 +144,14 @@ body {
   color: var(--navy-color, var(--rmit-navy));
 }
 
+/* The birthday tile cell is transparent; the frosted "card" styling lives on the
+   inner .birthday element so the card hugs its content and sits at the bottom of
+   the cell (anchored via justify-content) instead of extending up toward the
+   events. */
 .tile.tile-birthday {
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
   color: var(--white-color, var(--white));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  padding: 0;
 }
 
 .tile.navy {
@@ -517,8 +519,22 @@ body {
   --bday-scale: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* Hug the content (max-height caps it to the cell so the auto-fit still
+     engages for long lists); the frosted card styling lives here, not on the
+     tile, so it never extends into the empty space above. */
+  max-height: 100%;
   min-height: 0;
+  /* Anchor the card to the bottom of the cell (overrides the tile's align class)
+     so it sits just above where the weather ends, with transparent space above
+     rather than frosted card extending toward the events. */
+  margin-top: auto;
+  padding: 30px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: hidden;
 }
 
 .birthday .bday-head {
@@ -530,14 +546,6 @@ body {
   flex: none;
 }
 
-/* When the weather strip is shown, push the birthday block (header + list) down
-   so it sits directly above the weather; spare space falls above the header
-   rather than leaving a gap between the last birthday and the weather. Without
-   weather, the list keeps its normal top-aligned position. */
-.birthday.has-weather .bday-head {
-  margin-top: auto;
-}
-
 .birthday .cake {
   font-size: clamp(1.5rem, 2vw, 2.4rem);
 }
@@ -547,9 +555,8 @@ body {
   flex-direction: column;
   gap: calc(16px * var(--bday-scale));
   margin-top: calc(18px * var(--bday-scale));
-  /* grow:0 so spare space goes to the header's auto top-margin (anchoring the
-     block to the bottom); shrink:1 + overflow:hidden keep the auto-fit logic
-     working when a long list must be squeezed. */
+  /* grow:0 so the list hugs its content within the card; shrink:1 + overflow
+     hidden keep the auto-fit logic working when a long list must be squeezed. */
   flex: 0 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -1000,6 +1007,12 @@ body {
 .tile-layout-vertical .clock-events-section {
   width: 100%;
   margin-top: clamp(10px, 1.8vw, 18px);
+  /* Bounded so a long event list can never overflow the clock tile and bleed
+     into the rest of the column; rows beyond the available space are clipped
+     cleanly (and the count is capped in Tile.tsx so no row is cut mid-height). */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .tile-layout-wide .clock-events-section {

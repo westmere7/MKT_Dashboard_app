@@ -100,7 +100,10 @@ function ClockTile({ w = 3, h = 6 }: { w?: number; h?: number }) {
       dateLabel: formatEventDate(c.startDate),
       tags: c.tags || [],
     }))
-    .sort((a, b) => a.days - b.days);
+    .sort((a, b) => a.days - b.days)
+    // Show only the soonest few so the list always fits the clock tile instead
+    // of overflowing and getting clipped mid-row.
+    .slice(0, 4);
 
   const isWide = w > h;
 
@@ -414,7 +417,7 @@ function BirthdayTile({ card }: { card: Card }) {
   });
 
   return (
-    <div className={`birthday ${weatherShown ? 'has-weather' : ''}`}>
+    <div className="birthday">
       <div className="bday-head">
         <span className="cake">🎂</span> Birthdays
       </div>
