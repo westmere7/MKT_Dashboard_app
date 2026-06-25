@@ -322,8 +322,9 @@ body {
      off-centre on some browsers. Keeping it above the font box guarantees
      symmetric leading everywhere, so vertical centring is identical
      cross-browser. Padding is reduced to keep the pill height (line-height +
-     2*padding ≈ 1.3em) close to before. */
-  line-height: 1.2;
+     2*padding ≈ 1.3em) close to before. Museo's box is ~1.19em, so 1.25 keeps
+     a comfortable positive-leading margin on every engine. */
+  line-height: 1.25;
   letter-spacing: -0.04em;
   color: var(--white);
   white-space: nowrap;
