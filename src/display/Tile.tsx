@@ -100,12 +100,33 @@ function ClockTile({ w = 3, h = 6 }: { w?: number; h?: number }) {
       dateLabel: formatEventDate(c.startDate),
       tags: c.tags || [],
     }))
-    .sort((a, b) => a.days - b.days)
-    // Show only the soonest few so the list always fits the clock tile instead
-    // of overflowing and getting clipped mid-row.
-    .slice(0, 4);
+    .sort((a, b) => a.days - b.days);
 
   const isWide = w > h;
+
+  // Show only as many (soonest) events as fully fit the space under the clock,
+  // measured — so a row is never cut off mid-height. The leftover space varies
+  // a lot with screen size and how tall the clock stack is.
+  const eventsSecRef = useRef<HTMLDivElement>(null);
+  const [eventFit, setEventFit] = useState(upcomingEvents.length);
+  useLayoutEffect(() => {
+    const sec = eventsSecRef.current;
+    if (!sec) return;
+    const measure = () => {
+      const list = sec.querySelector('.clock-events-list') as HTMLElement | null;
+      const rows = sec.querySelectorAll('.clock-event-row');
+      if (!list || !rows.length) return;
+      const rowH = (rows[0] as HTMLElement).getBoundingClientRect().height;
+      const gap = parseFloat(getComputedStyle(list).rowGap) || 0;
+      const fit = Math.max(1, Math.floor((sec.clientHeight + gap) / (rowH + gap)));
+      setEventFit((prev) => (prev === fit ? prev : fit));
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(sec);
+    return () => ro.disconnect();
+  }, [upcomingEvents.length]);
 
   return (
     <div className={`clock-and-events ${isWide ? 'tile-layout-wide' : 'tile-layout-vertical'}`}>
@@ -134,9 +155,9 @@ function ClockTile({ w = 3, h = 6 }: { w?: number; h?: number }) {
       </div>
 
       {upcomingEvents.length > 0 && (
-        <div className="clock-events-section">
+        <div className="clock-events-section" ref={eventsSecRef}>
           <div className="clock-events-list">
-            {upcomingEvents.map((e) => (
+            {upcomingEvents.slice(0, eventFit).map((e) => (
               <div className="clock-event-row" key={e.title}>
                 <div className="clock-event-date-box">
                   <span className="clock-event-date-label">{e.dateLabel}</span>

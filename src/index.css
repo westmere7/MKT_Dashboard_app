@@ -148,10 +148,12 @@ body {
    inner .birthday element so the card hugs its content and sits at the bottom of
    the cell (anchored via justify-content) instead of extending up toward the
    events. */
-.tile.tile-birthday {
+.tile.tile-birthday,
+.tile.tile-birthday.tile-short {
   background: transparent;
   color: var(--white-color, var(--white));
-  padding: 0;
+  padding: 0; /* card provides its own padding; the higher-specificity selector
+                 beats .tile.tile-short's padding so the card stays flush */
 }
 
 .tile.navy {
