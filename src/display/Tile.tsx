@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import type { Card } from './cards';
 import { useData } from '../store/useData';
 import { birthdayLabel, youtubeId, daysUntil, formatEventDate } from '../lib/util';
+import { useWeather, weatherInfo } from '../lib/useWeather';
 import rmitLogo from '../Elements/RMIT_white.svg';
 
 // Renders one bento tile based on its card kind. The outer motion wrapper lives
@@ -148,6 +149,42 @@ function ClockTile({ w = 3, h = 6 }: { w?: number; h?: number }) {
   );
 }
 
+// Live weather for the RMIT Vietnam campus, anchored to the bottom of the
+// birthday tile: current conditions plus a short look-ahead (+2h, +4h). Renders
+// nothing until the first reading arrives, so it never leaves an empty gap.
+function WeatherStrip() {
+  const weather = useWeather();
+  if (!weather) return null;
+
+  const now = weatherInfo(weather.current.code, weather.current.isDay);
+  const f2 = weatherInfo(weather.in2h.code, weather.in2h.isDay);
+  const f4 = weatherInfo(weather.in4h.code, weather.in4h.isDay);
+
+  return (
+    <div className="weather-strip">
+      <div className="weather-now">
+        <span className="weather-now-icon">{now.icon}</span>
+        <div className="weather-now-main">
+          <span className="weather-now-temp">{weather.current.temp}°</span>
+          <span className="weather-now-label">{now.label}</span>
+        </div>
+      </div>
+      <div className="weather-forecast">
+        <div className="weather-fc">
+          <span className="weather-fc-when">+2h</span>
+          <span className="weather-fc-icon">{f2.icon}</span>
+          <span className="weather-fc-temp">{weather.in2h.temp}°</span>
+        </div>
+        <div className="weather-fc">
+          <span className="weather-fc-when">+4h</span>
+          <span className="weather-fc-icon">{f4.icon}</span>
+          <span className="weather-fc-temp">{weather.in4h.temp}°</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImageTile({ card }: { card: Card }) {
   const images = card.images && card.images.length ? card.images : card.imageUrl ? [card.imageUrl] : [];
   const [idx, setIdx] = useState(0);
@@ -287,6 +324,7 @@ function VideoTile({ card }: { card: Card }) {
 const BDAY_MIN_SCALE = 0.6;
 
 function BirthdayTile({ card }: { card: Card }) {
+  const { data } = useData();
   const people = card.people ?? [];
 
   const todayPeople = useMemo(() => people.filter((p) => p.days === 0), [people]);
@@ -438,6 +476,7 @@ function BirthdayTile({ card }: { card: Card }) {
           </div>
         )}
       </div>
+      {data.settings.weatherEnabled !== false && <WeatherStrip />}
     </div>
   );
 }

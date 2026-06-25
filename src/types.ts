@@ -111,6 +111,7 @@ export interface Settings {
   birthdayWindowDays: number; // how far ahead "upcoming" birthdays look
   eventWindowDays?: number; // how far ahead "upcoming" events look
   showSeconds: boolean;
+  weatherEnabled?: boolean; // show the live weather strip (default on)
   tickerMessages: string[];
   cornerRadius?: number;
   backgroundColor?: string;

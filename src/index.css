@@ -883,6 +883,92 @@ body {
   width: 100%;
 }
 
+/* ---------- weather strip (anchored to the bottom of the birthday tile) ---------- */
+
+.weather-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(10px, 1.6vw, 18px);
+  width: 100%;
+  flex: none; /* sits below the flex:1 birthday list, so it pins to the bottom */
+  margin-top: calc(14px * var(--bday-scale, 1));
+  padding-top: clamp(10px, 1.4vw, 16px);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.18);
+}
+
+.weather-now {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.2vw, 14px);
+  min-width: 0;
+}
+
+.weather-now-icon {
+  font-size: min(14cqw, 14cqh, 2.6rem);
+  line-height: 1;
+}
+
+.weather-now-main {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.weather-now-temp {
+  font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: min(11cqw, 11cqh, 2rem);
+  color: var(--white);
+}
+
+.weather-now-label {
+  font-size: min(6cqw, 6.5cqh, 1rem);
+  color: var(--white);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weather-forecast {
+  display: flex;
+  gap: clamp(6px, 0.9vw, 10px);
+  flex: none;
+}
+
+.weather-fc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px clamp(8px, 1vw, 12px);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+}
+
+.weather-fc-when {
+  font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: min(5cqw, 5.5cqh, 0.78rem);
+  color: var(--white);
+  opacity: 0.8;
+}
+
+.weather-fc-icon {
+  font-size: min(7.5cqw, 7.5cqh, 1.3rem);
+  line-height: 1;
+}
+
+.weather-fc-temp {
+  font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: min(6cqw, 6.5cqh, 1rem);
+  color: var(--white);
+}
+
 .clock-events-section {
   display: flex;
   flex-direction: column;
@@ -1024,6 +1110,10 @@ body {
   .tile-layout-vertical .clock-events-section {
     display: none;
   }
+  /* Drop the wordy condition label so the weather row stays one compact line. */
+  .weather-now-label {
+    display: none;
+  }
 }
 
 /* For wide and short clock tiles: split clocks horizontally */
@@ -1040,6 +1130,9 @@ body {
 /* Completely hide events in extremely restricted heights to avoid clipping clocks */
 @container (max-height: 180px) {
   .clock-events-section {
+    display: none;
+  }
+  .weather-strip {
     display: none;
   }
 }

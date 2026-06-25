@@ -126,7 +126,14 @@ export function Display() {
 
   const minCards = data.settings.minCards ?? 1;
   const maxCards = data.settings.maxCards ?? 5;
-  const count = Math.min(units.length, Math.max(minCards, Math.min(maxCards, MAX_SUPPORTED_TILES)));
+  // Show a RANDOM number of campaign tiles between the configured min and max,
+  // re-rolled each scene (seeded by the page seed + scene index, so it's stable
+  // within a render yet varies as the wall rotates). Clamped to how many
+  // campaigns actually exist and to the templates we support.
+  const loCards = Math.max(1, Math.min(minCards, maxCards));
+  const hiCards = Math.min(MAX_SUPPORTED_TILES, units.length, Math.max(minCards, maxCards));
+  const countRoll = rng((seed ^ ((sceneIdx + 1) * 0x9e3779b1)) >>> 0)();
+  const count = hiCards <= loCards ? hiCards : loCards + Math.floor(countRoll * (hiCards - loCards + 1));
   const isBirthdayShort = utils.birthday.people ? utils.birthday.people.length <= 5 : true;
   const family = isBirthdayShort ? TEMPLATES_BY_COUNT_SHORT_BDAY[count] : TEMPLATES_BY_COUNT[count];
   const tick = sceneIdx + seed;

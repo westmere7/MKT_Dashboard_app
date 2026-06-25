@@ -166,8 +166,8 @@ function SettingsSection() {
         <div className="item-main">
           <div className="item-title">Display settings {dirty && <span className="dirty-dot" title="Unsaved" />}</div>
           <div className="item-meta">
-            {draft.brandName} · rotate {draft.rotationSeconds}s · cards {draft.minCards ?? 1}-{draft.maxCards ?? 5} · birthdays {draft.birthdayWindowDays}d · events {draft.eventWindowDays ?? 60}d ·{' '}
-            {draft.tickerMessages.length} ticker msgs
+            {draft.brandName} · rotate {draft.rotationSeconds}s · cards {draft.minCards ?? 1}-{draft.maxCards ?? 5} · birthdays {draft.birthdayWindowDays}d · events {draft.eventWindowDays ?? 60}d · weather{' '}
+            {draft.weatherEnabled === false ? 'off' : 'on'} · {draft.tickerMessages.length} ticker msgs
           </div>
         </div>
         <span className={`chevron ${open ? 'up' : ''}`}>▾</span>
@@ -265,6 +265,16 @@ function SettingsSection() {
               >
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Show weather section</label>
+              <select
+                value={draft.weatherEnabled === false ? 'no' : 'yes'}
+                onChange={(e) => set({ weatherEnabled: e.target.value === 'yes' })}
+              >
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
               </select>
             </div>
           </div>
