@@ -311,15 +311,18 @@ body {
 }
 
 .time-tz {
-  font-family: 'Helvetica', sans-serif;
+  /* Museo 700 is bundled with the app, so it renders identically on every
+     browser/kiosk — unlike the previous Helvetica stack, which fell back to a
+     system sans-serif (with different metrics) wherever the webfont didn't load. */
+  font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
   font-size: min(21cqw, 21cqh, 4.2rem);
-  font-weight: 800;
-  /* The bundled Helvetica's box (ascent+descent) is ~1.16em tall. A line-height
-     below that creates NEGATIVE leading, which each browser clips/distributes
-     differently — the cause of the time drifting off-centre on some browsers.
-     Keeping it above the font box guarantees symmetric leading everywhere, so
-     vertical centring is identical cross-browser. Padding is reduced to keep the
-     pill the same overall height as before (line-height + 2*padding ≈ 1.3em). */
+  font-weight: 700; /* matches the real Museo 700 face — no faux-bold synthesis */
+  /* A line-height below the font's box height creates NEGATIVE leading, which
+     each browser clips/distributes differently — the cause of the time drifting
+     off-centre on some browsers. Keeping it above the font box guarantees
+     symmetric leading everywhere, so vertical centring is identical
+     cross-browser. Padding is reduced to keep the pill height (line-height +
+     2*padding ≈ 1.3em) close to before. */
   line-height: 1.2;
   letter-spacing: -0.04em;
   color: var(--white);
