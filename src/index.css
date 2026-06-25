@@ -314,16 +314,28 @@ body {
   font-family: 'Helvetica', sans-serif;
   font-size: min(21cqw, 21cqh, 4.2rem);
   font-weight: 800;
-  line-height: 1.0;
+  /* The bundled Helvetica's box (ascent+descent) is ~1.16em tall. A line-height
+     below that creates NEGATIVE leading, which each browser clips/distributes
+     differently — the cause of the time drifting off-centre on some browsers.
+     Keeping it above the font box guarantees symmetric leading everywhere, so
+     vertical centring is identical cross-browser. Padding is reduced to keep the
+     pill the same overall height as before (line-height + 2*padding ≈ 1.3em). */
+  line-height: 1.2;
   letter-spacing: -0.04em;
   color: var(--white);
   white-space: nowrap;
   background: var(--navy-color, var(--rmit-navy));
-  padding: 0.15em 0.35em;
+  padding: 0.05em 0.35em;
   border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Progressive enhancement: trim leading to the cap/alphabetic ink box on
+     engines that support it (Chromium 133+, Safari 18.2+) for pixel-perfect
+     optical centring. Older engines ignore this and fall back to the leading
+     fix above. */
+  text-box-trim: trim-both;
+  text-box-edge: cap alphabetic;
 }
 
 /* ---------- stat tile ---------- */
