@@ -274,21 +274,27 @@ body {
 /* ---------- clock tile ---------- */
 
 .clock-dual {
-  display: grid;
-  grid-template-columns: 1fr auto; /* Column 1 (time) is flexible, Column 2 (location) is auto and perfectly aligned vertically */
-  column-gap: 24px;
-  row-gap: clamp(10px, 1.8vw, 20px); /* Spacing between the two times */
-  align-items: center;
-  width: 100%;
-  padding-top: clamp(16px, 2.8vw, 30px); /* Add more top padding as requested */
-  padding-bottom: clamp(10px, 1.8vw, 18px);
-}
-
-.timezone-info-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  gap: clamp(10px, 1.8vw, 18px); /* space between the VN and MEL blocks */
+  width: 100%;
+  padding-top: clamp(6px, 1.4vw, 14px);
+  padding-bottom: clamp(4px, 1vw, 10px);
+}
+
+/* One timezone: a compact header (badge + date on a single full-width line, so
+   the date never wraps in the narrow information column) above its time pill. */
+.tz-block {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2px, 0.5vw, 6px);
+  min-width: 0;
+}
+
+.tz-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .badge-tz {
@@ -297,7 +303,7 @@ body {
   color: var(--white);
   padding: 4px 10px;
   border-radius: 6px;
-  font-size: min(8.5cqw, 8.5cqh, 1.3rem);
+  font-size: min(10cqw, 10cqh, 1.55rem);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -308,10 +314,11 @@ body {
 }
 
 .date-tz {
-  font-size: min(8.5cqw, 8.5cqh, 1.3rem);
-  opacity: 0.85;
+  font-size: min(10cqw, 10cqh, 1.55rem);
+  opacity: 0.9;
   color: var(--white);
   text-align: left;
+  white-space: nowrap;
 }
 
 .time-tz {
@@ -319,7 +326,7 @@ body {
      browser/kiosk — unlike the previous Helvetica stack, which fell back to a
      system sans-serif (with different metrics) wherever the webfont didn't load. */
   font-family: 'Museo 700', 'Segoe UI', system-ui, sans-serif;
-  font-size: min(21cqw, 21cqh, 4.2rem);
+  font-size: min(18cqw, 18cqh, 3.8rem);
   font-weight: 700; /* matches the real Museo 700 face — no faux-bold synthesis */
   /* A line-height below the font's box height creates NEGATIVE leading, which
      each browser clips/distributes differently — the cause of the time drifting
@@ -338,6 +345,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  align-self: flex-start; /* hug content (left) within the vertical clock stack */
   /* Progressive enhancement: trim leading to the cap/alphabetic ink box on
      engines that support it (Chromium 133+, Safari 18.2+) for pixel-perfect
      optical centring. Older engines ignore this and fall back to the leading
@@ -522,6 +530,14 @@ body {
   flex: none;
 }
 
+/* When the weather strip is shown, push the birthday block (header + list) down
+   so it sits directly above the weather; spare space falls above the header
+   rather than leaving a gap between the last birthday and the weather. Without
+   weather, the list keeps its normal top-aligned position. */
+.birthday.has-weather .bday-head {
+  margin-top: auto;
+}
+
 .birthday .cake {
   font-size: clamp(1.5rem, 2vw, 2.4rem);
 }
@@ -531,7 +547,10 @@ body {
   flex-direction: column;
   gap: calc(16px * var(--bday-scale));
   margin-top: calc(18px * var(--bday-scale));
-  flex: 1 1 auto;
+  /* grow:0 so spare space goes to the header's auto top-margin (anchoring the
+     block to the bottom); shrink:1 + overflow:hidden keep the auto-fit logic
+     working when a long list must be squeezed. */
+  flex: 0 1 auto;
   min-height: 0;
   overflow: hidden;
 }
@@ -883,7 +902,7 @@ body {
 .clock-divider {
   border: none;
   border-top: 1.5px solid rgba(255, 255, 255, 0.25);
-  margin: 12px 0 16px 0;
+  margin: 8px 0 10px 0;
   width: 100%;
 }
 
@@ -1098,7 +1117,7 @@ body {
     gap: 6px;
   }
   .badge-tz, .date-tz {
-    font-size: min(7.5cqw, 8cqh, 1.2rem);
+    font-size: min(9cqw, 9.5cqh, 1.4rem);
     padding: 3px 8px;
   }
   .clock-event-row {

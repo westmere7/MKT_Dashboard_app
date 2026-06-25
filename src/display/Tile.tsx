@@ -4,6 +4,7 @@ import type { Card } from './cards';
 import { useData } from '../store/useData';
 import { birthdayLabel, youtubeId, daysUntil, formatEventDate } from '../lib/util';
 import { useWeather, weatherInfo } from '../lib/useWeather';
+import type { Weather } from '../lib/useWeather';
 import rmitLogo from '../Elements/RMIT_white.svg';
 
 // Renders one bento tile based on its card kind. The outer motion wrapper lives
@@ -112,16 +113,19 @@ function ClockTile({ w = 3, h = 6 }: { w?: number; h?: number }) {
         </div>
         <hr className="clock-divider" />
         <div className="clock-dual">
-          <div className="time-tz">{timeVN}</div>
-          <div className="timezone-info-right">
-            <span className="badge-tz">VN</span>
-            <span className="date-tz">{dateVN}</span>
+          <div className="tz-block">
+            <div className="tz-header">
+              <span className="badge-tz">VN</span>
+              <span className="date-tz">{dateVN}</span>
+            </div>
+            <div className="time-tz">{timeVN}</div>
           </div>
-          
-          <div className="time-tz">{timeMelb}</div>
-          <div className="timezone-info-right">
-            <span className="badge-tz">Mel</span>
-            <span className="date-tz">{dateMelb}</span>
+          <div className="tz-block">
+            <div className="tz-header">
+              <span className="badge-tz">Mel</span>
+              <span className="date-tz">{dateMelb}</span>
+            </div>
+            <div className="time-tz">{timeMelb}</div>
           </div>
         </div>
       </div>
@@ -152,10 +156,7 @@ function ClockTile({ w = 3, h = 6 }: { w?: number; h?: number }) {
 // Live weather for the RMIT Vietnam campus, anchored to the bottom of the
 // birthday tile: current conditions plus a short look-ahead (+2h, +4h). Renders
 // nothing until the first reading arrives, so it never leaves an empty gap.
-function WeatherStrip() {
-  const weather = useWeather();
-  if (!weather) return null;
-
+function WeatherStrip({ weather }: { weather: Weather }) {
   const now = weatherInfo(weather.current.code, weather.current.isDay);
   const f2 = weatherInfo(weather.in2h.code, weather.in2h.isDay);
   const f4 = weatherInfo(weather.in4h.code, weather.in4h.isDay);
@@ -325,6 +326,10 @@ const BDAY_MIN_SCALE = 0.6;
 
 function BirthdayTile({ card }: { card: Card }) {
   const { data } = useData();
+  // Weather is fetched here (not inside WeatherStrip) so the auto-fit below can
+  // re-run when it loads — the strip appearing changes the space the list has.
+  const weather = useWeather();
+  const weatherShown = data.settings.weatherEnabled !== false && !!weather;
   const people = card.people ?? [];
 
   const todayPeople = useMemo(() => people.filter((p) => p.days === 0), [people]);
@@ -354,7 +359,7 @@ function BirthdayTile({ card }: { card: Card }) {
     settledRef.current = false;
     setScale(1);
     setVisibleUpcoming(upcomingPeople.length);
-  }, [peopleKey, resizeToken, upcomingPeople.length]);
+  }, [peopleKey, resizeToken, upcomingPeople.length, weatherShown]);
 
   // A template/layout change resizes the tile; re-run the fit when it does.
   useEffect(() => {
@@ -409,7 +414,7 @@ function BirthdayTile({ card }: { card: Card }) {
   });
 
   return (
-    <div className="birthday">
+    <div className={`birthday ${weatherShown ? 'has-weather' : ''}`}>
       <div className="bday-head">
         <span className="cake">🎂</span> Birthdays
       </div>
@@ -476,7 +481,7 @@ function BirthdayTile({ card }: { card: Card }) {
           </div>
         )}
       </div>
-      {data.settings.weatherEnabled !== false && <WeatherStrip />}
+      {weatherShown && weather && <WeatherStrip weather={weather} />}
     </div>
   );
 }
